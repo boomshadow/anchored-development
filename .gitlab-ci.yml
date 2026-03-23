@@ -1,0 +1,30 @@
+stages:
+  - validate
+  - drift-detection
+
+validate:spec-index:
+  stage: validate
+  image: python:alpine
+  before_script:
+    - apk add --no-cache git
+    - pip install -q pyyaml
+  script:
+    - python3 .claude/skills/spec/scripts/generate_index.py
+    - git diff --exit-code docs/specs/INDEX.md
+
+validate:adr-index:
+  stage: validate
+  image: python:alpine
+  before_script:
+    - apk add --no-cache git
+    - pip install -q pyyaml
+  script:
+    - python3 .claude/skills/adr/scripts/generate_index.py
+    - git diff --exit-code docs/decisions/INDEX.md
+
+anchor-watch:
+  stage: drift-detection
+  image: registry.gitlab.com/boomshadow/anchor-watch-image:latest
+  script:
+    - node .claude/agents/scripts/ci-drift-detector.mjs
+  allow_failure: false
