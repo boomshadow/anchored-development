@@ -9,6 +9,12 @@ description: 'Executable tooling for Architecture Decision Records: validate fro
 
 Read the **Writing ADRs** section of `docs/specs/SPEC-000-anchored-development.md` for all ADR formatting, frontmatter, body structure, and lifecycle rules. Do not duplicate them here.
 
+### Project Writing Conventions
+
+ADR Decision sections document specific technical choices — naming the tool, the pattern, the tradeoff. That specificity is the point.
+
+Consequences sections should describe what changes for the team, not restate implementation details. Avoid claims about the current state of other files (e.g., "`.gitlab-ci.yml` is unchanged") — those go stale. Instead, describe the structural outcome (e.g., "No deployment stage was added to CI").
+
 ## Lifecycle Operations
 
 ### Create
