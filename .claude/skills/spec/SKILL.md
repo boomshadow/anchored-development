@@ -9,6 +9,20 @@ description: 'Executable tooling for Specifications: validate frontmatter, gener
 
 Read the **Writing Specs** section of `docs/specs/SPEC-000-anchored-development.md` for all spec formatting, frontmatter, granularity, and lifecycle rules. Do not duplicate them here.
 
+### Project Writing Conventions
+
+Specs in this project describe **observable behavior**, not implementation details. Write what a consumer, visitor, or adopter would perceive — not how the code achieves it.
+
+**The test:** if a developer could reasonably change this detail during normal development without needing a spec amendment, it's too specific for the spec. Specs should be stable across routine implementation adjustments.
+
+**Too prescriptive** — describes CSS properties, not the experience:
+> Tables use aubergine borders with alternating row backgrounds (warm cream and pale mauve). Header rows use lavender background.
+
+**Observable** — describes what a visitor sees, with room for design intent:
+> Tables have alternating row backgrounds and subtle borders drawn from the warm palette. Header rows stand apart.
+
+Structural decisions (page names, page count, build tool) belong in specs. Palette color names (sage green, dusty rose, lavender) are design vocabulary and welcome in specs — they communicate intent. Hex codes, CSS property values, and other implementation specifics belong in the code or in self-documenting artifacts like the colophon.
+
 ## Lifecycle Operations
 
 ### Create

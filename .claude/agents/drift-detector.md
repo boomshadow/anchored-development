@@ -35,7 +35,8 @@ If a diff is provided in the prompt, use it.
 
 If no diff is provided, determine the diff from git context:
 
-- On a feature branch: `git diff $(git merge-base origin/main HEAD)...HEAD`
+- On a feature branch: run `git merge-base origin/main HEAD` first to get
+  the merge base SHA, then run `git diff <SHA>...HEAD` using that SHA.
 - On main: `git diff HEAD~1...HEAD`
 - If neither can be determined (detached HEAD, shallow clone, etc.),
   fail explicitly — do not guess.

@@ -1,0 +1,40 @@
+= Anchored Development Website
+
+Source files for the static site at https://anchored-dev.org[anchored-dev.org].
+
+== Local Development
+
+From the repository root:
+
+[source,bash]
+----
+docker run --rm -v "$(pwd):/workspace" -w /workspace -p 8081:8081 node:24.14.0-alpine3.22 npx @11ty/eleventy --serve --port=8081
+----
+
+The dev server starts at `http://localhost:8081/` with hot reload.
+
+== Build
+
+[source,bash]
+----
+npm run build
+----
+
+Output goes to `site/_site/`.
+
+== Deployment
+
+Deployed automatically via Cloudflare Pages on every push to `main`. Feature
+branches get preview deployments at Cloudflare-assigned URLs.
+
+== Architecture
+
+* **Build tool:** Eleventy v3 (Build Awesome)
+* **Config:** `eleventy.config.js` at repo root
+* **Source:** `site/src/`
+* **Output:** `site/_site/`
+* **Spec:** link:../docs/specs/SPEC-001-website.md[SPEC-001] — behavioral expectations
+* **ADR:** link:../docs/decisions/ADR-002-website-technology-stack.md[ADR-002] — technology decisions
+
+The homepage renders `docs/specs/SPEC-000-anchored-development.md` directly at
+build time via a custom shortcode — the spec file is never duplicated.

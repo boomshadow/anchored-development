@@ -1,0 +1,32 @@
+= Anchored Development
+
+[quote]
+Documentation that has no consumer and no enforcement mechanism is documentation that will lie to you.
+
+Anchored Development is a framework for living documentation in AI-assisted software development. It defines four interconnected artifact types — code, tests, specs, and ADRs — and the practices that prevent them from drifting apart.
+
+== The Spec
+
+The entire framework is defined in a single file:
+
+link:docs/specs/SPEC-000-anchored-development.md[docs/specs/SPEC-000-anchored-development.md]
+
+This is the sole authoritative source. The https://anchored-dev.org[website] renders this file directly at build time — it is not a copy or a rewrite; it is the spec file with styling applied. If the website and the spec ever disagree, the spec is correct.
+
+== How to Implement
+
+The spec itself talks about adoption. See https://anchored-dev.org/#adopting-anchored-development[Adopting Anchored Development] on the website for a styled walkthrough. For an example minimal starting point, see the https://github.com/boomshadow/anchored-development-example[example repository].
+
+== Project Artifacts
+
+This project follows its own framework. The specs, ADRs, and tooling here are *NOT* intended as examples — they are the real files that govern _this_ repository. If you are looking for a starting point for your own project, see <<How to Implement>>.
+
+* **Specs**: link:docs/specs/[docs/specs/] — behavioral expectations by domain
+* **ADRs**: link:docs/decisions/[docs/decisions/] — architectural reasoning and rejected alternatives
+* **Drift detection**: link:.claude/agents/drift-detector.md[.claude/agents/drift-detector.md] — agent and link:.gitlab-ci.yml[CI job] that enforces artifact consistency
+
+== Licensing
+
+Spec text and website content are link:LICENSES/CC-BY-SA-4.0.txt[CC BY-SA 4.0].
+Code is link:LICENSE[MPL 2.0].
+See link:docs/decisions/ADR-001-licensing.md[ADR-001] for the reasoning.

@@ -16,3 +16,9 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Node.js
+node_modules/
+
+# Eleventy build output
+site/_site/

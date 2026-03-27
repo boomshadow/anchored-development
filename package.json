@@ -1,0 +1,18 @@
+{
+  "name": "anchored-development-site",
+  "private": true,
+  "type": "module",
+  "description": "Website for Anchored Development at anchored-dev.org",
+  "license": "MPL-2.0",
+  "scripts": {
+    "build": "npx @11ty/eleventy",
+    "dev": "npx @11ty/eleventy --serve",
+    "test": "sh test/build-smoke.sh"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "3.1.5",
+    "@11ty/eleventy-plugin-syntaxhighlight": "5.0.2",
+    "markdown-it": "14.1.1",
+    "markdown-it-anchor": "9.2.0"
+  }
+}
