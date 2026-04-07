@@ -21,6 +21,7 @@ This project follows [Anchored Development](docs/specs/SPEC-000-anchored-develop
 
 `site/` contains source files for the static site at anchored-dev.org.
 Built with Eleventy v3 (Build Awesome), deployed via Cloudflare Pages.
-See [SPEC-001](docs/specs/SPEC-001-website.md) for behavioral expectations
-and [ADR-002](docs/decisions/ADR-002-website-technology-stack.md) for technology decisions.
+See [SPEC-001](docs/specs/SPEC-001-website.md) for behavioral expectations,
+[ADR-002](docs/decisions/ADR-002-website-technology-stack.md) for technology decisions,
+and [ADR-003](docs/decisions/ADR-003-dark-mode-approach.md) for the dark mode approach.
 Build config: `eleventy.config.js` at repo root. Source: `site/src/`. Output: `site/_site/`.

@@ -47,6 +47,12 @@ if grep -q '<a[^>]*>README\.md</a>' "$homepage"; then
   fail=1
 fi
 
+# Dark mode support (prefers-color-scheme media query in stylesheet)
+if ! grep -q 'prefers-color-scheme' "$OUTPUT_DIR/css/style.css"; then
+  echo "FAIL: dark mode media query not found in stylesheet"
+  fail=1
+fi
+
 if [ "$fail" -ne 0 ]; then
   exit 1
 fi

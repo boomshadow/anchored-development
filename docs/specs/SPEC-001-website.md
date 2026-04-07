@@ -1,8 +1,8 @@
 ---
 title: "Website"
-description: "Behavioral expectations for anchored-dev.org. Covers page structure (homepage rendering SPEC-000, getting-started guide, colophon), content sourcing without file duplication, visual design system (Grand Budapest Hotel aesthetic with warm pastels and aubergine tones), typography (Playfair Display, Libre Baskerville, Jost), rendering rules (heading anchors, syntax highlighting, responsive layout), and deployment via Cloudflare Pages."
+description: "Behavioral expectations for anchored-dev.org. Covers page structure (homepage rendering SPEC-000, getting-started guide, colophon), content sourcing without file duplication, visual design system (Grand Budapest Hotel aesthetic with warm pastels and aubergine tones, system-preference dark mode), typography (Playfair Display, Libre Baskerville, Jost), rendering rules (heading anchors, syntax highlighting, dark mode, responsive layout), and deployment via Cloudflare Pages."
 status: accepted
-tags: [website, anchored-dev-org, design-system, visual-identity, deployment, typography, color-palette]
+tags: [website, anchored-dev-org, design-system, visual-identity, deployment, typography, color-palette, dark-mode]
 ---
 
 # Website
@@ -35,7 +35,9 @@ The site's visual identity is inspired by the aesthetic of Wes Anderson's *The G
 
 The palette is warm, literary, and muted — aubergine ink, dusty rose accents, sage green links, lavender and pink gradients, all set against a warm cream background that feels like paper rather than a screen. The tones are drawn from the site's anchor icon, which uses lavender, dusty rose, and sage green with dark aubergine outlines in an ornamental art-deco frame.
 
-Exact color values are documented in the site's colophon, which serves as the authoritative reference for the technical palette.
+The palette adapts to the user's operating system light/dark preference via `prefers-color-scheme`. In dark mode, the palette shifts to deep warm aubergine-black backgrounds with lightened text and accents — the same hotel with the lights dimmed, not a cold inversion. Colors that already have sufficient contrast against both backgrounds (dusty rose, sage green) remain unchanged.
+
+Exact color values for both light and dark palettes are documented in the site's colophon, which serves as the authoritative reference for the technical palette.
 
 ### Typography
 
@@ -55,7 +57,7 @@ Three font families, each with a distinct role:
 
 **Ornamental double borders.** The hero section uses a double-line border treatment — an outer line, a gap, an inner line — echoing the art-deco frame in the site icon. This treatment may extend to other featured elements as the site evolves.
 
-**Warm backgrounds.** The page background is warm cream, not white. White feels clinical; cream feels like hotel stationery.
+**Warm backgrounds.** The page background is warm cream, not white. White feels clinical; cream feels like hotel stationery. In dark mode, the background is warm aubergine-black, not cold blue-black — the same principle applied to the opposite end of the lightness scale.
 
 ### Hero Section
 
@@ -71,7 +73,7 @@ The hero content sits inside an ornamental double-border frame.
 
 **Tables** use alternating row backgrounds and subtle borders drawn from the palette. Header rows are visually distinct.
 
-**Code blocks** use dark aubergine background with warm-tinted text. Syntax highlighting token colors harmonize with the palette: strings in sage green, keywords in dusty rose, comments in lavender.
+**Code blocks** use dark aubergine background with warm-tinted text. Syntax highlighting token colors harmonize with the palette: strings in sage green, keywords in dusty rose, comments in lavender. Code blocks maintain a dark background in both light and dark mode, using semantic variables that decouple their colors from the page palette.
 
 **Blockquotes** have a left border in dusty rose, italic text, and indentation.
 
@@ -91,7 +93,9 @@ The hero content sits inside an ornamental double-border frame.
 
 **Responsive design.** The site is a single centered column on all viewport sizes. On mobile, navigation stacks vertically and font sizes adjust for readability. On desktop, the content column is constrained to approximately 720px.
 
-**No client-side JavaScript required.** The site functions fully as static HTML and CSS. Any JavaScript is optional enhancement, not required for reading the specification.
+**Dark mode.** The site adapts to the user's operating system color scheme preference via the `prefers-color-scheme` CSS media query. No JavaScript toggle is provided — the site follows the operating system setting. See [ADR-003](../decisions/ADR-003-dark-mode-approach.md) for the design decision.
+
+**No client-side JavaScript required.** The site functions fully as static HTML and CSS. Any JavaScript is optional enhancement, not required for reading the specification. Dark mode is handled entirely in CSS.
 
 ## Deployment
 
@@ -106,6 +110,7 @@ The site is deployed to Cloudflare Pages via native GitLab integration. Cloudfla
 ## Related Artifacts
 
 - [ADR-002](../decisions/ADR-002-website-technology-stack.md) — technology stack decision (Eleventy, Cloudflare Pages)
+- [ADR-003](../decisions/ADR-003-dark-mode-approach.md) — dark mode approach (CSS custom property overrides via prefers-color-scheme)
 - [SPEC-000](SPEC-000-anchored-development.md) — the specification rendered as the homepage content
 - [ADR-001](../decisions/ADR-001-licensing.md) — site content is licensed under CC BY-SA 4.0
-- Build smoke tests in `test/` verify that all three pages and the stylesheet are produced by the build (Page Structure, Deployment) and verify heading anchor links, build-time syntax highlighting, and linkify being disabled (Rendering Rules)
+- Build smoke tests in `test/` verify that all three pages and the stylesheet are produced by the build (Page Structure, Deployment) and verify heading anchor links, build-time syntax highlighting, linkify being disabled, and dark mode support (Rendering Rules)
