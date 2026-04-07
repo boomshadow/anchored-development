@@ -4,6 +4,8 @@
 
 /* --- Custom Properties --- */
 :root {
+  color-scheme: light dark;
+
   /* Palette */
   --warm-cream:       #FAF3EB;
   --medium-aubergine: #5C3A5C;
@@ -15,6 +17,15 @@
   --mendl-pink:       #F6C4D2;
   --regal-purple:     #75638B;
 
+  /* Semantic tokens (derived from palette, overridden in dark mode) */
+  --pale-mauve-tint:    rgba(232, 208, 217, 0.15);
+  --code-bg:            var(--dark-aubergine);
+  --code-text:          var(--warm-cream);
+  --syntax-function:    #E8C87A;
+  --syntax-comment:     var(--lavender);
+  --syntax-punctuation: var(--pale-mauve);
+  --syntax-operator:    var(--mendl-pink);
+
   /* Typography */
   --font-display: 'Playfair Display', Georgia, serif;
   --font-body:    'Libre Baskerville', Georgia, serif;
@@ -23,6 +34,31 @@
   /* Layout */
   --content-width: 720px;
   --content-padding: 2rem;
+}
+
+/* --- Dark Mode (system preference) --- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Palette */
+    --warm-cream:       #2A1F2D;
+    --medium-aubergine: #D4B8D4;
+    --dark-aubergine:   #E8D5E0;
+    --dusty-rose:       #D4909A;
+    --lavender:         #4A3F5C;
+    --sage-green:       #8BB5A2;
+    --pale-mauve:       #3D2F3D;
+    --mendl-pink:       #5C3A4A;
+    --regal-purple:     #B8A8D0;
+
+    /* Semantic tokens */
+    --pale-mauve-tint:    rgba(61, 47, 61, 0.3);
+    --code-bg:            #1A1220;
+    --code-text:          #E8D5E0;
+    --syntax-function:    #E8C87A;
+    --syntax-comment:     #9990B8;
+    --syntax-punctuation: #B8A0B0;
+    --syntax-operator:    #E8A0B8;
+  }
 }
 
 /* --- Reset & Base --- */
@@ -257,7 +293,7 @@ blockquote {
   padding: 0.75em 1.5em;
   font-style: italic;
   color: var(--regal-purple);
-  background-color: rgba(232, 208, 217, 0.15);
+  background-color: var(--pale-mauve-tint);
 }
 
 blockquote p {
@@ -296,7 +332,7 @@ td {
 }
 
 tbody tr:nth-child(even) {
-  background-color: rgba(232, 208, 217, 0.15);
+  background-color: var(--pale-mauve-tint);
 }
 
 /* --- Code --- */
@@ -319,8 +355,8 @@ h4 code {
 
 /* Code blocks */
 pre {
-  background-color: var(--dark-aubergine);
-  color: var(--warm-cream);
+  background-color: var(--code-bg);
+  color: var(--code-text);
   padding: 1.5em;
   border-radius: 6px;
   overflow-x: auto;
@@ -340,12 +376,12 @@ pre code {
 .token.prolog,
 .token.doctype,
 .token.cdata {
-  color: var(--lavender);
+  color: var(--syntax-comment);
   font-style: italic;
 }
 
 .token.punctuation {
-  color: var(--pale-mauve);
+  color: var(--syntax-punctuation);
 }
 
 .token.property,
@@ -368,7 +404,7 @@ pre code {
 .token.operator,
 .token.entity,
 .token.url {
-  color: var(--mendl-pink);
+  color: var(--syntax-operator);
 }
 
 .token.atrule,
@@ -380,7 +416,7 @@ pre code {
 
 .token.function,
 .token.class-name {
-  color: #E8C87A;
+  color: var(--syntax-function);
 }
 
 .token.regex,
