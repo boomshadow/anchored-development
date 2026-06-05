@@ -13,7 +13,7 @@ npm run build
 
 # Check that critical output files exist
 fail=0
-for f in "$OUTPUT_DIR/index.html" "$OUTPUT_DIR/getting-started/index.html" "$OUTPUT_DIR/colophon/index.html" "$OUTPUT_DIR/css/style.css"; do
+for f in "$OUTPUT_DIR/index.html" "$OUTPUT_DIR/getting-started/index.html" "$OUTPUT_DIR/colophon/index.html" "$OUTPUT_DIR/css/style.css" "$OUTPUT_DIR/js/theme.js"; do
   if [ ! -f "$f" ]; then
     echo "FAIL: missing $f"
     fail=1
@@ -47,9 +47,29 @@ if grep -q '<a[^>]*>README\.md</a>' "$homepage"; then
   fail=1
 fi
 
-# Dark mode support (prefers-color-scheme media query in stylesheet)
-if ! grep -q 'prefers-color-scheme' "$OUTPUT_DIR/css/style.css"; then
-  echo "FAIL: dark mode media query not found in stylesheet"
+# Dark mode support (data-theme override block in stylesheet)
+if ! grep -q '\[data-theme="dark"\]' "$OUTPUT_DIR/css/style.css"; then
+  echo "FAIL: dark mode [data-theme=\"dark\"] block not found in stylesheet"
+  fail=1
+fi
+
+# Theme slider control rendered on the homepage
+if ! grep -q 'theme-slider' "$homepage"; then
+  echo "FAIL: theme slider control not found in homepage"
+  fail=1
+fi
+
+# Inline head script that sets the theme before first paint (no-flash guarantee)
+if ! grep -q 'dataset.theme' "$homepage"; then
+  echo "FAIL: inline theme-init head script not found in homepage"
+  fail=1
+fi
+
+# Persistence contract: the theme choice is saved so it survives reloads and
+# navigation between pages (SPEC-001 §Theme Toggle, ADR-003). This guards the
+# load-bearing "the choice is remembered" invariant.
+if ! grep -q 'localStorage' "$OUTPUT_DIR/js/theme.js"; then
+  echo "FAIL: theme code does not persist the choice (no localStorage use)"
   fail=1
 fi
 

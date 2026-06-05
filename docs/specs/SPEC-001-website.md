@@ -1,8 +1,8 @@
 ---
 title: "Website"
-description: "Behavioral expectations for anchored-dev.org. Covers page structure (homepage rendering SPEC-000, getting-started guide, colophon), content sourcing without file duplication, visual design system (Grand Budapest Hotel aesthetic with warm pastels and aubergine tones, system-preference dark mode), typography (Playfair Display, Libre Baskerville, Jost), rendering rules (heading anchors, syntax highlighting, dark mode, responsive layout), and deployment via Cloudflare Pages."
+description: "Behavioral expectations for anchored-dev.org. Covers page structure (homepage rendering SPEC-000, getting-started guide, colophon), content sourcing without file duplication, visual design system (Grand Budapest Hotel aesthetic with warm pastels and aubergine tones, a header light/dark theme slider that defaults to the operating system preference and remembers the visitor's choice), typography (Playfair Display, Libre Baskerville, Jost), rendering rules (heading anchors, syntax highlighting, dark mode and theme toggle, responsive layout), and deployment via Cloudflare Pages."
 status: accepted
-tags: [website, anchored-dev-org, design-system, visual-identity, deployment, typography, color-palette, dark-mode]
+tags: [website, anchored-dev-org, design-system, visual-identity, deployment, typography, color-palette, dark-mode, theme-toggle]
 ---
 
 # Website
@@ -35,7 +35,7 @@ The site's visual identity is inspired by the aesthetic of Wes Anderson's *The G
 
 The palette is warm, literary, and muted — aubergine ink, dusty rose accents, sage green links, lavender and pink gradients, all set against a warm cream background that feels like paper rather than a screen. The tones are drawn from the site's anchor icon, which uses lavender, dusty rose, and sage green with dark aubergine outlines in an ornamental art-deco frame.
 
-The palette adapts to the user's operating system light/dark preference via `prefers-color-scheme`. In dark mode, the palette shifts to deep warm aubergine-black backgrounds with lightened text and accents — the same hotel with the lights dimmed, not a cold inversion. Colors that already have sufficient contrast against both backgrounds (dusty rose, sage green) remain unchanged.
+The site has both a light and a dark palette. By default the active palette follows the visitor's operating system light/dark preference; a header theme slider lets the visitor override it, and the choice is remembered (see Theme Toggle). In dark mode, the palette shifts to deep warm aubergine-black backgrounds with lightened text and accents — the same hotel with the lights dimmed, not a cold inversion. Colors that already have sufficient contrast against both backgrounds (dusty rose, sage green) remain unchanged.
 
 Exact color values for both light and dark palettes are documented in the site's colophon, which serves as the authoritative reference for the technical palette.
 
@@ -83,6 +83,17 @@ The hero content sits inside an ornamental double-border frame.
 
 **Lists** use custom markers in dusty rose.
 
+### Theme Toggle
+
+The site header contains a sun/moon slider control that switches the page between the light and dark palettes. Its behavior:
+
+- **Default follows the operating system.** Until the visitor makes a choice, the active theme is set from their `prefers-color-scheme` setting, before first paint, so there is no flash of the wrong theme. While no choice has been made, the page also follows live changes to the OS preference.
+- **The slider switches the theme.** Moving the slider switches the page to light or dark.
+- **The choice is remembered.** Once the visitor picks a theme it is saved and persists across reloads, navigation between pages, and return visits. After a choice is made, the saved theme governs rather than the OS preference. There is no in-UI control to return to following the OS (clearing site data resets to the default).
+- The slider reflects the active theme: the sun side is highlighted in light mode, the moon side in dark mode.
+
+See [ADR-003](../decisions/ADR-003-dark-mode-approach.md) for the rationale, rejected alternatives (including the earlier session-only approach and a third-party component), and the verification strategy for these behaviors. The persistence guarantee is enforced by an automated check; the interactive behaviors are verified by manual verification and drift detection rather than a browser test suite.
+
 ## Rendering Rules
 
 **Heading anchor links.** All h2 through h6 headings have anchor links for deep-linking. Visitors can link directly to any section of the specification.
@@ -93,9 +104,9 @@ The hero content sits inside an ornamental double-border frame.
 
 **Responsive design.** The site is a single centered column on all viewport sizes. On mobile, navigation stacks vertically and font sizes adjust for readability. On desktop, the content column is constrained to approximately 720px.
 
-**Dark mode.** The site adapts to the user's operating system color scheme preference via the `prefers-color-scheme` CSS media query. No JavaScript toggle is provided — the site follows the operating system setting. See [ADR-003](../decisions/ADR-003-dark-mode-approach.md) for the design decision.
+**Dark mode.** The active palette defaults to the user's operating system color scheme and can be overridden with the header theme slider (see Theme Toggle). The theme is applied by setting a `data-theme` attribute on the root element; the dark palette is a single block of CSS custom property overrides. A small inline script sets the initial theme from `prefers-color-scheme` before first paint. See [ADR-003](../decisions/ADR-003-dark-mode-approach.md) for the design decision.
 
-**No client-side JavaScript required.** The site functions fully as static HTML and CSS. Any JavaScript is optional enhancement, not required for reading the specification. Dark mode is handled entirely in CSS.
+**Reading does not require client-side JavaScript.** The site's content renders fully as static HTML and CSS; the specification is completely readable with JavaScript disabled. The theme toggle is a JavaScript enhancement — with JavaScript disabled, the site displays in the light palette regardless of the OS preference.
 
 ## Deployment
 
@@ -110,7 +121,7 @@ The site is deployed to Cloudflare Pages via native GitLab integration. Cloudfla
 ## Related Artifacts
 
 - [ADR-002](../decisions/ADR-002-website-technology-stack.md) — technology stack decision (Eleventy, Cloudflare Pages)
-- [ADR-003](../decisions/ADR-003-dark-mode-approach.md) — dark mode approach (CSS custom property overrides via prefers-color-scheme)
+- [ADR-003](../decisions/ADR-003-dark-mode-approach.md) — dark mode approach (persisted light/dark slider over CSS custom property overrides, defaulting to the OS preference and remembering the choice)
 - [SPEC-000](SPEC-000-anchored-development.md) — the specification rendered as the homepage content
 - [ADR-001](../decisions/ADR-001-licensing.md) — site content is licensed under CC BY-SA 4.0
-- Build smoke tests in `test/` verify that all three pages and the stylesheet are produced by the build (Page Structure, Deployment) and verify heading anchor links, build-time syntax highlighting, linkify being disabled, and dark mode support (Rendering Rules)
+- Build smoke tests in `test/` verify that all three pages, the stylesheet, and the `theme.js` script are produced by the build (Page Structure, Deployment) and verify heading anchor links, build-time syntax highlighting, linkify being disabled, dark mode support (the `[data-theme="dark"]` override block), the presence of the header theme slider, the inline head script that sets the theme before first paint, and the persistence contract (the theme choice is saved to web storage) (Rendering Rules, Theme Toggle)

@@ -28,7 +28,7 @@ The visual identity is inspired by Wes Anderson's *The Grand Budapest Hotel* —
 
 ### Dark Palette
 
-The site adapts to the visitor's operating system light/dark preference using the `prefers-color-scheme` media query — no JavaScript, no toggle. The dark palette is the same hotel with the lights dimmed: deep warm aubergine-black, not cold blue-black.
+The site defaults to the visitor's operating system light/dark preference, and a sun/moon slider in the header lets you switch themes by hand. Your choice is remembered as you move around the site and on return visits; until you pick one, the page follows your system setting. The dark palette is the same hotel with the lights dimmed: deep warm aubergine-black, not cold blue-black.
 
 | Color | Hex | Role |
 | ----- | --- | ---- |
@@ -65,7 +65,7 @@ All fonts served via Google Fonts.
 
 ## Instruments and Accomplices
 
-**Eleventy (Build Awesome) v3** generates the site from markdown and Nunjucks templates. A custom shortcode reads the framework specification from its canonical location in the repository, strips the YAML frontmatter, and renders it through the same markdown-it pipeline as the rest of the site. The spec file is never duplicated. The site uses no client-side JavaScript — everything is static HTML and CSS. Dark mode is handled entirely through CSS custom properties and the `prefers-color-scheme` media query.
+**Eleventy (Build Awesome) v3** generates the site from markdown and Nunjucks templates. A custom shortcode reads the framework specification from its canonical location in the repository, strips the YAML frontmatter, and renders it through the same markdown-it pipeline as the rest of the site. The spec file is never duplicated. The site uses one small piece of hand-written client-side JavaScript — about a dozen lines that drive the theme slider; everything else is static HTML and CSS, and the content reads fine with JavaScript disabled. Themes are handled through CSS custom properties, overridden via a `data-theme` attribute on the page.
 
 **Cloudflare Pages** hosts the site and deploys automatically on every push to `main`. Preview deployments are created for feature branches.
 
