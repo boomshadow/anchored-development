@@ -4,7 +4,7 @@
 
 /* --- Custom Properties --- */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* Palette */
   --warm-cream:       #FAF3EB;
@@ -36,29 +36,32 @@
   --content-padding: 2rem;
 }
 
-/* --- Dark Mode (system preference) --- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Palette */
-    --warm-cream:       #2A1F2D;
-    --medium-aubergine: #D4B8D4;
-    --dark-aubergine:   #E8D5E0;
-    --dusty-rose:       #D4909A;
-    --lavender:         #4A3F5C;
-    --sage-green:       #8BB5A2;
-    --pale-mauve:       #3D2F3D;
-    --mendl-pink:       #5C3A4A;
-    --regal-purple:     #B8A8D0;
+/* --- Dark Mode --- */
+/* Applied via the data-theme attribute on <html>. An inline head script sets it
+   before first paint from the visitor's saved choice (localStorage), falling
+   back to the OS preference; the header slider updates and persists the choice. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
 
-    /* Semantic tokens */
-    --pale-mauve-tint:    rgba(61, 47, 61, 0.3);
-    --code-bg:            #1A1220;
-    --code-text:          #E8D5E0;
-    --syntax-function:    #E8C87A;
-    --syntax-comment:     #9990B8;
-    --syntax-punctuation: #B8A0B0;
-    --syntax-operator:    #E8A0B8;
-  }
+  /* Palette */
+  --warm-cream:       #2A1F2D;
+  --medium-aubergine: #D4B8D4;
+  --dark-aubergine:   #E8D5E0;
+  --dusty-rose:       #D4909A;
+  --lavender:         #4A3F5C;
+  --sage-green:       #8BB5A2;
+  --pale-mauve:       #3D2F3D;
+  --mendl-pink:       #5C3A4A;
+  --regal-purple:     #B8A8D0;
+
+  /* Semantic tokens */
+  --pale-mauve-tint:    rgba(61, 47, 61, 0.3);
+  --code-bg:            #1A1220;
+  --code-text:          #E8D5E0;
+  --syntax-function:    #E8C87A;
+  --syntax-comment:     #9990B8;
+  --syntax-punctuation: #B8A0B0;
+  --syntax-operator:    #E8A0B8;
 }
 
 /* --- Reset & Base --- */
@@ -171,6 +174,7 @@ a:visited {
 
 /* --- Site Header & Navigation --- */
 .site-header {
+  position: relative;
   padding: 1.2rem var(--content-padding);
   border-bottom: 1px solid var(--pale-mauve);
   background-color: var(--warm-cream);
@@ -209,6 +213,84 @@ a:visited {
 
 .nav-link--active {
   border-bottom-color: var(--dusty-rose);
+}
+
+/* --- Theme Slider --- */
+/* A sun/moon pill that flips the page between light and dark.
+   Built as a styled checkbox; theme.js wires up the behavior. */
+.theme-slider {
+  position: absolute;
+  right: var(--content-padding);
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  cursor: pointer;
+}
+
+/* Visually-hidden but focusable checkbox */
+.theme-slider input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  margin: 0;
+}
+
+.theme-slider__track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 3.4rem;
+  height: 1.7rem;
+  padding: 0 0.34rem;
+  border: 1px solid var(--regal-purple);
+  border-radius: 1rem;
+  background-color: var(--pale-mauve);
+  transition: background-color 0.2s ease;
+}
+
+.theme-slider__icon {
+  position: relative;
+  z-index: 2;
+  width: 0.85rem;
+  height: 0.85rem;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Light is the default (unchecked): the sun rides the thumb, the moon dims */
+.theme-slider__icon--sun  { color: var(--warm-cream); opacity: 1; }
+.theme-slider__icon--moon { color: var(--regal-purple); opacity: 0.55; }
+
+.theme-slider input:checked ~ .theme-slider__track .theme-slider__icon--sun {
+  color: var(--regal-purple);
+  opacity: 0.55;
+}
+.theme-slider input:checked ~ .theme-slider__track .theme-slider__icon--moon {
+  color: var(--warm-cream);
+  opacity: 1;
+}
+
+.theme-slider__thumb {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 0.2rem;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background-color: var(--medium-aubergine);
+  transform: translateY(-50%);
+  transition: transform 0.25s ease, background-color 0.2s ease;
+}
+
+.theme-slider input:checked ~ .theme-slider__track .theme-slider__thumb {
+  transform: translate(1.7rem, -50%);
+}
+
+.theme-slider input:focus-visible ~ .theme-slider__track {
+  outline: 2px solid var(--sage-green);
+  outline-offset: 2px;
 }
 
 /* --- Hero Section --- */
@@ -552,5 +634,11 @@ hr {
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
+  }
+
+  /* Nav stacks vertically here — keep the slider in the top-right corner */
+  .theme-slider {
+    top: 1.2rem;
+    transform: none;
   }
 }

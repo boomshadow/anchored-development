@@ -44,6 +44,7 @@ export default function (eleventyConfig) {
   // --- Passthrough copy ---
   eleventyConfig.addPassthroughCopy({ "site/src/css": "css" });
   eleventyConfig.addPassthroughCopy({ "site/src/img": "img" });
+  eleventyConfig.addPassthroughCopy({ "site/src/js": "js" });
 
   // --- Watch targets ---
   // Rebuild when the spec changes (it lives outside the input directory)
