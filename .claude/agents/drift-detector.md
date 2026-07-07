@@ -124,5 +124,13 @@ If no drift is detected, report: "No drift detected."
   not an artifact you check for compliance. Do not flag SPEC-000 for
   violating its own guidelines. All other specs in the project are
   subject to normal drift evaluation.
+- **Verify states, never infer histories**: A diff shows outcomes, not the
+  commands that produced them. Never report that a process step (a skill,
+  validator, or generator run) was skipped — that is unobservable from a diff.
+  Generated artifacts (the INDEX.md files) change only when their source
+  frontmatter changes, so an unchanged generated file is not evidence that
+  regeneration was skipped. If you suspect a generated artifact is stale,
+  read its content and compare it against the current source frontmatter,
+  and report only a confirmed mismatch.
 - **Direction, not prescription**: Suggestions point toward the fix. They do
   not dictate exact text.
