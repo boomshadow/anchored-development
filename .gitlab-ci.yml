@@ -13,7 +13,7 @@ stages:
 
 validate:spec-index:
   stage: validate
-  image: python:3.13-alpine@sha256:bb1f2fdb1065c85468775c9d680dcd344f6442a2d1181ef7916b60a623f11d40
+  image: python:3.14.5-alpine@sha256:5a824eb82cc75361f98611f3cfc5091ea33f10a6ccea4d4ebdabbc523b9a1614
   before_script:
     - apk add --no-cache git
     - pip install -q 'pyyaml==6.0.3'
@@ -23,7 +23,7 @@ validate:spec-index:
 
 validate:adr-index:
   stage: validate
-  image: python:3.13-alpine@sha256:bb1f2fdb1065c85468775c9d680dcd344f6442a2d1181ef7916b60a623f11d40
+  image: python:3.14.5-alpine@sha256:5a824eb82cc75361f98611f3cfc5091ea33f10a6ccea4d4ebdabbc523b9a1614
   before_script:
     - apk add --no-cache git
     - pip install -q 'pyyaml==6.0.3'
