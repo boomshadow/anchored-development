@@ -2,7 +2,7 @@
 title: "Anchored Development"
 description: "A framework for living documentation in AI-assisted software development. Defines four interconnected artifact types (code, tests, specs, ADRs), three enforcement modes (self-enforcing, verified, unverified), and the practices that keep documentation anchored to reality. Addresses documentation drift, spec sprawl, and the disconnect between product and engineering teams."
 status: accepted
-version: 1.0.0
+version: 2.0.0
 tags: [anchored-development, spec-driven-development, living-documentation, drift-detection, framework]
 license: CC-BY-SA-4.0
 ---
@@ -137,7 +137,7 @@ The drift detection mechanism automates this evaluation.
 
 ## Navigation Aids
 
-Not everything in a repository is an artifact. Repositories also contain documents whose purpose is to route readers to artifacts — READMEs, AI entry files, indexes, onboarding guides. These are navigation aids.
+Not everything in a repository is an artifact. Repositories also contain documents whose purpose is to route readers to artifacts — READMEs, AI entry files, indexes, changelogs, onboarding guides, etc. These are navigation aids.
 
 The distinction is directional. The four artifact types form a bidirectional feedback loop — a change to any one can drive changes to any other. Navigation aids are always downstream. An index changes because a spec changed. A README changes because the project structure changed. But it never flows the other way — a navigation aid does not drive changes to code, tests, specs, or ADRs.
 
@@ -584,7 +584,7 @@ Anchored Development draws on ideas from:
 
 **Markdown monster** — The anti-pattern of accumulating unverified documentation that drifts from reality and becomes actively harmful. Named for the tendency of spec-driven tools to generate excessive markdown files that nobody maintains.
 
-**Navigation aid** — A repository document that routes readers to artifacts rather than containing authoritative system information. Always downstream — changes to artifacts may require updating navigation aids, but not the reverse. Examples: indexes, entry files, onboarding guides.
+**Navigation aid** — A repository document that routes readers to artifacts rather than containing authoritative system information. Always downstream — changes to artifacts may require updating navigation aids, but not the reverse. Examples: indexes, entry files, changelogs, onboarding guides.
 
 **Self-enforcing** — An artifact whose consumer is also its executor. Drift is structurally impossible. Examples: protobuf definitions, database migrations, type definitions.
 
