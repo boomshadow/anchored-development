@@ -72,23 +72,27 @@ Edit in place. Git is the history. The document always describes how the system 
 
 Protobuf definitions define the API contract. Migrations define the schema. Type definitions define the data model. Domain specs MUST NOT duplicate what self-enforcing artifacts already express. They cover only what self-enforcing artifacts cannot: state transitions, timing semantics, error handling, retry behavior, business logic. When prose and a self-enforcing artifact disagree, the self-enforcing artifact is correct.
 
+**7. Prose stays above the implementation.**
+
+Specs describe behavior; ADRs describe reasoning. Neither describes implementation — that is the code's job, and the code is its source of truth. Keep prose at the altitude the code does not own: name *what* the system does and *why*, never the line numbers, functions, methods, or internal mechanics that carry it out. That detail belongs to the code; repeating it in prose manufactures the exact drift this framework exists to prevent, because every refactor that leaves behavior unchanged still forces a documentation edit. The test: if a change to *how* the system works, with no change to *what* it does, would force a documentation update, the document was written at too low an altitude. Reference an artifact by its stable name or number — a proto, a migration, a sibling spec — never by a line or an internal symbol.
+
 ### Discipline
 
-**7. Domain-level, not feature-level.**
+**8. Domain-level, not feature-level.**
 
 Specs are organized by domain (job lifecycle, billing, authentication), not by feature or ticket (add heartbeat timeout, fix retry bug). Features are absorbed into domain specs when implemented. Domains persist across the life of the system. Features come and go. This is the anti-sprawl mechanism — the total number of specs grows slowly with the system's domains, not linearly with its feature count.
 
-**8. Enforcement is not optional.**
+**9. Enforcement is not optional.**
 
 Drift detection MUST run on every change — whether through a CI pipeline, a git hook, or any automated check the team chooses. This is the minimum viable harness. It is what makes verified ADRs, specs, and tests trustworthy. Start from the first commit if you can. If you are adopting into an existing codebase, start now — every change checked from this point forward builds the habit.
 
 ### Collaboration
 
-**9. Spec is the shared language.**
+**10. Spec is the shared language.**
 
 Specs are written in natural language, readable by every stakeholder — product managers, architects, engineers, AI agents. When a product manager asks "what happens when a user cancels mid-checkout?", the answer is in the spec — not buried in code or in a ticket from last quarter. The spec is the ongoing reference for how the system behaves, accessible to everyone regardless of technical depth.
 
-**10. Transient artifacts are consumed, not maintained.**
+**11. Transient artifacts are consumed, not maintained.**
 
 PRDs, tickets, and user stories are communication kickoffs. They initiate work and convey intent. The spec captures the durable behavioral outcome. Once intent is absorbed into the spec, the transient artifact has served its purpose. It can be closed, archived, or deleted. It does not need maintenance — the spec does.
 
@@ -319,6 +323,8 @@ The spec covers what self-enforcing artifacts cannot express:
 
 The self-enforcing artifact defines the vocabulary. The spec defines the grammar and semantics.
 
+This is the spec's *altitude* (Principle 7): it captures what the system does and under what conditions, not how the code does it — describe behavior, never the mechanics.
+
 ## Writing ADRs
 
 ### File Location and Naming
@@ -367,6 +373,8 @@ ADRs MUST contain at minimum:
 
 ADRs SHOULD reference related specs and self-enforcing artifacts by number or path — e.g., "See SPEC-001" or "See `proto/v1/job.proto`."
 
+Like specs, ADRs have an *altitude* (Principle 7): they record the decision and its reasoning, not the code that implements it — cite an artifact by name or number, never a line number or a specific function.
+
 ### When to Write an ADR
 
 The guiding question: *"Would a capable engineer, new to this codebase, likely propose a different approach here — and would that be a problem?"* If yes, write the ADR.
@@ -383,11 +391,17 @@ Skip an ADR for:
 - Implementation details obvious from the code.
 - Decisions where the spec's context is sufficient.
 
-### Living Documents
+## Living Documents
+
+All artifacts are living documents.
 
 Traditional ADRs are immutable historical records — when a decision changes, the old ADR is marked "superseded" and a new one is created. Anchored Development treats ADRs as living rationale. When a decision changes, the ADR is edited in place to reflect the current reasoning. Outdated ADRs are deleted, not archived. Git provides the history that immutability was designed to preserve.
 
-A reader encountering an ADR MUST be able to trust it describes the current state of the decision — one coherent description with no reconciliation burden.
+Specifications get the same treatment. Left to themselves, specs drift: the code moves on and the document is not kept in step, until it describes a system that no longer exists. Whether that drift is neglect or intent, the result is the same — documentation no one can trust. Anchored Development treats a spec as a living behavioral contract, edited in place as behavior changes, so it always describes the system as it is today rather than as it once was.
+
+A living document is written in the timeless present of the current state, not as a history of how it got there. Point-in-time language — "reverted," "recently," "previously," "earlier," "now," "as of" — is accurate for a week and misleading in a year; it is the drift that living documents exist to prevent. Git holds the chronology; the document does not narrate it. This governs a document's account of its own changes, not behavior that legitimately involves time: a spec may describe a migration performed on upgrade, or a theme that follows live OS changes until the user chooses — that is present-tense behavior, not point-in-time narration. The prohibition targets language pinned to a moving present, not the plain past tense of a settled decision: "X was chosen" or "Y was rejected" state facts that stay true, and are fine.
+
+ADRs carry a further obligation, because they alone record decisions and their rejected alternatives. When a decision reverses, the abandoned approach moves into the Decision's rejected-alternatives, described in the present tense as evaluated and rejected, carrying the evidence that settled it — not narrated as something the system "used to do," "reverted," or "rolled back." The resulting ADR reads as a decision to reject X, not as a history of adopting and then removing it; this is correct, not dishonest, because a rejected-alternative backed by evidence answers "why not X?" for a future reader who never saw the experiment, and that prevents re-litigation far better than a note that X was tried and removed. That evidence — including any production measurement that motivated the reversal — MUST remain in the ADR; it is what lets the rejection stand on its own.
 
 ## Drift Detection
 
