@@ -11,7 +11,7 @@ tags: [website, static-site-generator, eleventy, cloudflare-pages, deployment, h
 
 Anchored Development needs a website at anchored-dev.org to publish the framework specification as a readable, navigable web page. The site has two requirements that constrain the technology choice:
 
-**The spec must render from source.** SPEC-000 is a 580-line markdown file at `docs/specs/SPEC-000-anchored-development.md`. It is the authoritative artifact. The website must render this file directly at build time — not a copy, not a duplicate, not a synced mirror. One source of truth, rendered in two contexts (repository and website).
+**The spec must render from source.** SPEC-000 is a long-form markdown file at `docs/specs/SPEC-000-anchored-development.md`. It is the authoritative artifact. The website must render this file directly at build time — not a copy, not a duplicate, not a synced mirror. One source of truth, rendered in two contexts (repository and website).
 
 **The site must be simple and low-maintenance.** The initial scope is a small handful of pages: the spec rendered as the homepage, a companion getting-started guide, and a colophon. The framework is the product, not the website. Technology choices that optimize for scale, speed, or feature richness at the cost of simplicity are wrong for this use case.
 
@@ -25,11 +25,11 @@ All site source lives in `site/src/`. The build configuration (`eleventy.config.
 
 Eleventy was chosen for four reasons:
 
-**Custom shortcodes solve the rendering problem cleanly.** A custom async shortcode (`renderSpec`) reads the spec file from `docs/specs/`, strips its YAML frontmatter, and renders the markdown body through the same markdown-it pipeline used by the rest of the site. This is straightforward Node.js — `fs.readFile`, a regex to strip frontmatter, and the configured markdown-it instance. No file duplication, no symlinks, no build-time copy steps.
+**Custom shortcodes solve the rendering problem cleanly.** A custom async shortcode renders SPEC-000 directly from its source in `docs/specs/`, stripping the frontmatter and rendering its markdown through the same markdown-it pipeline the rest of the site uses. No file duplication, no symlinks, no build-time copy steps.
 
 **The data cascade handles frontmatter overlay.** The spec file has its own frontmatter (`title`, `description`, `status`, `version`, `tags`, `license`) that serves the repository context. The website needs different metadata (`layout`, page-specific data). Eleventy's data cascade lets directory data files inject site-building metadata without touching the spec file's frontmatter.
 
-**Nunjucks templating and layout chaining.** Layouts chain cleanly: `base.njk` (HTML shell, fonts, CSS) → `spec.njk` (hero section, ornamental frame) for the homepage, and `base.njk` → `page.njk` (simpler header) for explainer pages. Adding a new page type means adding one layout file.
+**Nunjucks templating and layout chaining.** Layouts chain cleanly — a shared base layout (HTML shell, fonts, CSS) extended by page-specific layouts: a hero/ornamental frame for the homepage, a simpler header for explainer pages. Adding a new page type means adding one layout file.
 
 **Minimal abstraction, minimal dependencies.** Eleventy v3 is ESM-native, Node.js only, and ships its own dev server with hot reload. The dependency footprint is small: `@11ty/eleventy`, `@11ty/eleventy-plugin-syntaxhighlight`, and a few markdown plugins. No Ruby, no Go, no framework runtime.
 
@@ -48,7 +48,7 @@ Deployment is not a CI job — Cloudflare Pages handles builds and deploys indep
 
 ### Configuration: repo root
 
-`package.json` and `eleventy.config.js` live at the repository root rather than inside `site/`. This is a deliberate choice — the custom shortcode needs to read `docs/specs/SPEC-000-anchored-development.md`, and paths in Eleventy resolve relative to the project root. Placing the configuration at the repo root means the spec file path works naturally without path gymnastics.
+`package.json` and `eleventy.config.js` live at the repository root rather than inside `site/`. This is a deliberate choice — the build needs to read SPEC-000 from `docs/specs/`, and paths in Eleventy resolve relative to the project root. Placing the configuration at the repo root means the spec file path works naturally without path gymnastics.
 
 The tradeoff is two additional files at the repo root. This is acceptable because the repository already acknowledges mixed concerns (specs, ADRs, skills, CI configuration, and site source all coexist).
 
@@ -80,7 +80,7 @@ The limitation is everything after that first page. Adding a second page, shared
 
 Astro was acquired by Cloudflare in 2025, making it the best-supported framework on Cloudflare Pages. Starlight, Astro's documentation theme, provides search, dark mode, sidebar navigation, and internationalization out of the box.
 
-This is overkill for a small site. Astro's `node_modules` footprint is large, the Starlight template has many moving parts, and the sidebar-centric navigation design is awkward for a handful of pages. If anchored-dev.org grows into a multi-section documentation site, Astro becomes the right choice. For now, it is premature complexity.
+This is overkill for a small site. Astro's `node_modules` footprint is large, the Starlight template has many moving parts, and the sidebar-centric navigation design is awkward for a handful of pages. If anchored-dev.org grows into a multi-section documentation site, Astro becomes the right choice. For a site of this size, it is premature complexity.
 
 ### Rejected: Explicit CI deploy jobs
 
@@ -99,7 +99,7 @@ If the native integration ever proves insufficient (e.g., need for build-time se
 - Cloudflare Pages must be configured in the dashboard (one-time manual setup after the code is merged to `main`).
 - No deployment stage was added to CI — deployment is decoupled from validation and drift detection.
 - Adding new pages means creating a markdown or Nunjucks file in `site/src/` with the appropriate layout in its frontmatter.
-- The `renderSpec` custom shortcode creates a coupling between the build and the spec file's location. If SPEC-000 moves, the shortcode path must be updated. This is acceptable — the spec's location is defined by the framework itself and is unlikely to change.
+- The build's spec rendering creates a coupling between the build and the spec file's location. If SPEC-000 moves, the build configuration must be updated. This is acceptable — the spec's location is defined by the framework itself and is unlikely to change.
 
 ## Related Artifacts
 

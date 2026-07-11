@@ -92,7 +92,7 @@ The site header contains a sun/moon slider control that switches the page betwee
 - **The choice is remembered.** Once the visitor picks a theme it is saved and persists across reloads, navigation between pages, and return visits. After a choice is made, the saved theme governs rather than the OS preference. There is no in-UI control to return to following the OS (clearing site data resets to the default).
 - The slider reflects the active theme: the sun side is highlighted in light mode, the moon side in dark mode.
 
-See [ADR-003](../decisions/ADR-003-dark-mode-approach.md) for the rationale, rejected alternatives (including the earlier session-only approach and a third-party component), and the verification strategy for these behaviors. The persistence guarantee is enforced by an automated check; the interactive behaviors are verified by manual verification and drift detection rather than a browser test suite.
+See [ADR-003](../decisions/ADR-003-dark-mode-approach.md) for the rationale, rejected alternatives (including a session-only approach and a third-party component), and the verification strategy for these behaviors. The persistence guarantee is enforced by an automated check; the interactive behaviors are verified by manual verification and drift detection rather than a browser test suite.
 
 ## Rendering Rules
 
@@ -124,4 +124,4 @@ The site is deployed to Cloudflare Pages via native GitLab integration. Cloudfla
 - [ADR-003](../decisions/ADR-003-dark-mode-approach.md) — dark mode approach (persisted light/dark slider over CSS custom property overrides, defaulting to the OS preference and remembering the choice)
 - [SPEC-000](SPEC-000-anchored-development.md) — the specification rendered as the homepage content
 - [ADR-001](../decisions/ADR-001-licensing.md) — site content is licensed under CC BY-SA 4.0
-- Build smoke tests in `test/` verify that all three pages, the stylesheet, and the `theme.js` script are produced by the build (Page Structure, Deployment) and verify heading anchor links, build-time syntax highlighting, linkify being disabled, dark mode support (the `[data-theme="dark"]` override block), the presence of the header theme slider, the inline head script that sets the theme before first paint, and the persistence contract (the theme choice is saved to web storage) (Rendering Rules, Theme Toggle)
+- Build smoke tests in `test/` verify the built site: all three pages, the stylesheet, and the theme script are produced (Page Structure, Deployment), and heading anchor links, build-time syntax highlighting, disabled linkify, dark-mode support, the header theme slider, no-flash theming before first paint, and the persistence contract (the theme choice is saved to web storage) are present (Rendering Rules, Theme Toggle)

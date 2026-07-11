@@ -23,7 +23,7 @@ Three constraints shape the decision:
 
 ### Light/dark slider via a `data-theme` attribute
 
-A sun/moon pill slider sits in the site header. `site/src/js/theme.js` (a small hand-rolled vanilla-JS script, no dependencies) toggles a `data-theme` attribute on the root `<html>` element. The stylesheet overrides the palette custom properties under a single `:root[data-theme="dark"]` block. `color-scheme` is set per theme (`light` on `:root`, `dark` on the dark block) so native UI controls match.
+A sun/moon pill slider sits in the site header. A small hand-rolled vanilla-JS script (no dependencies) toggles a `data-theme` attribute on the root `<html>` element. The stylesheet overrides the palette custom properties under a single `:root[data-theme="dark"]` block. `color-scheme` is set per theme (`light` on `:root`, `dark` on the dark block) so native UI controls match.
 
 ### Default follows the OS; the slider sets a remembered choice
 
@@ -33,23 +33,23 @@ A `<meta name="color-scheme" content="light dark">` tag is also declared in the 
 
 ### Persisted choice
 
-The visitor's choice is saved in `localStorage` under the key `theme` (`"light"` or `"dark"`). The inline head script reads it before first paint, so the chosen theme survives reloads and navigation between the site's pages (which are full page loads on this static site) and applies on return visits. Storage access is wrapped in `try`/`catch`, so if `localStorage` is unavailable (e.g. private-browsing restrictions) the toggle degrades gracefully to a session-only override rather than breaking.
+The visitor's choice is saved in `localStorage` under the key `theme` (`"light"` or `"dark"`). The inline head script reads it before first paint, so the chosen theme survives reloads and navigation between the site's pages (which are full page loads on this static site) and applies on return visits. If `localStorage` is unavailable (e.g. private-browsing restrictions), the toggle degrades gracefully to a session-only override rather than breaking.
 
 Until the visitor makes a choice, no value is stored and the page follows the OS preference (including live changes). There is intentionally no in-UI control to return to "follow the OS" after a choice has been made; the binary slider has no third state, and clearing site data resets to the default. This is an accepted simplification (see Consequences).
 
 ### A single dark palette block
 
-Because the inline head script resolves the active theme into the `data-theme` attribute, a separate `@media (prefers-color-scheme: dark)` block is unnecessary — the dark values live in exactly one place (`:root[data-theme="dark"]`), which is easier to maintain than parallel light and dark blocks. Semantic variables (`--code-bg`, `--code-text`, `--syntax-*`) still decouple code-block styling from the page palette so both can be tuned independently.
+Because the inline head script resolves the active theme into the `data-theme` attribute, a separate `@media (prefers-color-scheme: dark)` block is unnecessary — the dark values live in exactly one place (`:root[data-theme="dark"]`), which is easier to maintain than parallel light and dark blocks. Semantic variables still decouple code-block styling from the page palette so both can be tuned independently.
 
 ## Rejected: Session-only override (no persistence)
 
-The toggle initially did *not* persist the choice: every page load re-derived the theme from the OS preference, and the slider overrode it only for the current page view. This was abandoned because the site's pages are full page loads, so the theme reset to the OS default on every navigation between Home, Getting Started, and Colophon — a visitor who switched to dark lost it the moment they clicked a nav link. The reset was confirmed annoying in practice. Persisting the choice is the small, contained fix.
+A session-only override — the slider changes the theme for the current page view but nothing is persisted, so every page load re-derives the theme from the OS preference — is rejected. The site's pages are full page loads, so this resets the theme to the OS default on every navigation between Home, Getting Started, and Colophon: a visitor who switches to dark loses it the moment they click a nav link, which is confirmed annoying in practice. Persisting the choice is the small, contained fix.
 
 The persistence is deliberately bounded: the saved choice wins over the OS preference once set, but the OS preference remains the default for first-time and storage-cleared visitors.
 
 ## Rejected: System-only, no toggle
 
-Following `prefers-color-scheme` alone with no toggle — handled entirely in CSS with zero JavaScript — was the site's original approach. It was rejected because a visitor whose OS theme differs from what they want for reading had no recourse. The toggle costs a small hand-rolled script and a small CSS block, which is cheap enough to justify giving users control.
+Following `prefers-color-scheme` alone with no toggle — handled entirely in CSS with zero JavaScript — is rejected: a visitor whose OS theme differs from what they want for reading has no recourse. The toggle costs a small hand-rolled script and a small CSS block, which is cheap enough to justify giving users control.
 
 ## Rejected: Third-party toggle component
 
@@ -81,7 +81,7 @@ This was rejected as disproportionate. Adding a browser-automation framework —
 
 - Visitors can flip between light and dark from the header slider; the default tracks the operating system until a choice is made, and the choice is then remembered.
 - **The choice persists.** It is saved in `localStorage` and survives reloads, navigation between pages, and return visits. Once a choice is saved, the site stops following OS changes — the explicit choice wins. There is no in-UI way to return to "follow the OS" after choosing (the binary slider has no third state); clearing site data resets to the OS default. This is an accepted simplification; a three-state control could be added later if needed.
-- **Dark mode requires JavaScript.** A visitor with JavaScript disabled gets the light theme regardless of their OS setting (previously the CSS media query gave them OS dark mode). This is an accepted trade-off: reading the site never required JavaScript and still does not — only theme selection does.
+- **Dark mode requires JavaScript.** A visitor with JavaScript disabled gets the light theme regardless of their OS setting. This is an accepted trade-off: reading the site never required JavaScript and still does not — only theme selection does.
 - **No flash of the wrong theme.** Because the inline head script resolves the saved choice (or OS preference) into `data-theme` before first paint, persistence does not reintroduce a flash. Storage access is guarded so a thrown `localStorage` does not break theming.
 - **Verification strategy.** The toggle's behaviors are enforced proportionately rather than with browser automation:
   - *Persistence* is verified by an automated static check — the build smoke test asserts the theme code uses `localStorage`. This guards the load-bearing invariant (the choice is saved) against regression.
