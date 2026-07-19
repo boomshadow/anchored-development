@@ -10,7 +10,7 @@
     "test": "sh test/build-smoke.sh"
   },
   "devDependencies": {
-    "@11ty/eleventy": "3.1.5",
+    "@11ty/eleventy": "3.1.6",
     "@11ty/eleventy-plugin-syntaxhighlight": "5.0.2",
     "markdown-it": "14.2.0",
     "markdown-it-anchor": "9.2.0"
