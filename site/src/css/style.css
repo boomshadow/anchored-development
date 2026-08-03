@@ -13,11 +13,23 @@
   --dusty-rose:       #D4909A;
   --lavender:         #B8B0D2;
   --sage-green:       #8BB5A2;
+  --deep-sage:        #416D59;
   --pale-mauve:       #E8D0D9;
   --mendl-pink:       #F6C4D2;
   --regal-purple:     #75638B;
 
   /* Semantic tokens (derived from palette, overridden in dark mode) */
+  /* Sage green is a dark-background color: it reaches 6.9:1 on the dark
+     palette but only 2.1:1 on warm cream, well under the 4.5:1 that body-sized
+     text needs to stay legible. Deep sage is the same hue carried down in
+     lightness for the light palette, so links read as one color across themes
+     while clearing the contrast bar in both. */
+  --link-color:         var(--deep-sage);
+  /* Kept separate from --link-color deliberately: a focus ring is not a link,
+     and recoloring links should not silently move the indicator that tells a
+     keyboard visitor where they are. Non-text interface elements answer to the
+     3:1 bar rather than the 4.5:1 one, but they answer to a bar. */
+  --focus-color:        var(--deep-sage);
   --pale-mauve-tint:    rgba(232, 208, 217, 0.15);
   --code-bg:            var(--dark-aubergine);
   --code-text:          var(--warm-cream);
@@ -55,6 +67,9 @@
   --regal-purple:     #B8A8D0;
 
   /* Semantic tokens */
+  /* Sage green needs no deepening here — the dark background is what it suits. */
+  --link-color:         var(--sage-green);
+  --focus-color:        var(--sage-green);
   --pale-mauve-tint:    rgba(61, 47, 61, 0.3);
   --code-bg:            #1A1220;
   --code-text:          #E8D5E0;
@@ -153,7 +168,7 @@ em {
 
 /* --- Links --- */
 a {
-  color: var(--sage-green);
+  color: var(--link-color);
   text-decoration: none;
   transition: color 0.2s ease;
 }
@@ -162,14 +177,68 @@ a:hover {
   text-decoration: underline;
 }
 
-a:visited {
-  color: var(--regal-purple);
-}
+/* Links are one color regardless of whether they have been followed. Adding a
+   visited color back is not the one-line change it looks like — it outweighs
+   the class selectors below and reaches the navigation and the anchor
+   self-links too. ADR-005 holds the reasoning. */
 
 /* --- Heading Anchor Links --- */
+/* A self-link keeps the color of whatever it wraps, so an anchored heading or
+   rule reads as text rather than as navigation somewhere else. */
 .header-anchor {
   color: inherit;
   text-decoration: none;
+}
+
+/* Anchor marker: a pilcrow revealing that the anchor is a deep link, shown on
+   hover and on keyboard focus. Positioned absolutely so it never shifts the
+   centered heading text, and hung off ::after because h2::before is already the
+   ornamental chapter divider. Dusty rose is identical in both palettes, so no
+   dark-mode override is needed. */
+.header-anchor {
+  position: relative;
+}
+
+.header-anchor::after {
+  content: '¶';
+  position: absolute;
+  /* Centered on the anchor's own box rather than left at the static position,
+     which browsers resolve against the line box and not the text baseline —
+     that is what leaves the marker floating near the top of a tall heading. */
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 0.3em;
+  color: var(--dusty-rose);
+  /* Sized in em so the marker matches the height of the text it anchors, but
+     with family and style pinned: inherited, it picks up the display serif's
+     heavy single-stem pilcrow on headings and the italic slant on h3. */
+  font-family: var(--font-body);
+  font-size: 0.85em;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+  pointer-events: none;
+}
+
+/* Keyboard focus reveals the marker on any device. :focus-visible is not what
+   the media query below guards against — browsers do not raise it for a touch
+   tap — so gating it on pointer support would strand a tablet with a keyboard
+   for no protection in return. */
+.header-anchor:focus-visible::after {
+  opacity: 1;
+}
+
+/* The hover trigger is the one that needs the guard: without hover, a tapped
+   element can hold the state indefinitely. On those devices the marker stays at
+   opacity 0 — absolutely positioned and pointer-events: none, so it costs no
+   layout and the anchor text remains tappable. */
+@media (hover: hover) {
+  :is(h2, h3, h4, h5, h6, p):hover > .header-anchor::after {
+    opacity: 1;
+  }
 }
 
 /* --- Site Header & Navigation --- */
@@ -201,13 +270,9 @@ a:visited {
   transition: border-color 0.2s ease, color 0.2s ease;
 }
 
-.nav-link:visited {
-  color: var(--dark-aubergine);
-}
-
 .nav-link:hover {
-  color: var(--sage-green);
-  border-bottom-color: var(--sage-green);
+  color: var(--link-color);
+  border-bottom-color: var(--link-color);
   text-decoration: none;
 }
 
@@ -289,7 +354,7 @@ a:visited {
 }
 
 .theme-slider input:focus-visible ~ .theme-slider__track {
-  outline: 2px solid var(--sage-green);
+  outline: 2px solid var(--focus-color);
   outline-offset: 2px;
 }
 
@@ -562,11 +627,7 @@ hr {
 }
 
 .site-footer a {
-  color: var(--sage-green);
-}
-
-.site-footer a:visited {
-  color: var(--sage-green);
+  color: var(--link-color);
 }
 
 /* --- Responsive --- */

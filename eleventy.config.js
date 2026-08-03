@@ -13,12 +13,53 @@ const slugify = (s) =>
     .replace(/-+/g, "-")
     .trim();
 
+// The numbered principles in SPEC-000 are bold paragraphs, not headings, so
+// markdown-it-anchor does not reach them. This gives each one a stable
+// `principle-N` id and a self-link, so a rule is as deep-linkable as a section.
+// Slugs key off the number rather than the sentence so rewording a rule does not
+// break inbound links. Applied at render time only — SPEC-000 stays untouched.
+function principleAnchors(md) {
+  // Deliberately narrow: a whole paragraph that is exactly one bold
+  // "N. sentence" run. Ordered-list items elsewhere in SPEC-000 also open with
+  // bold text, but they are nested (level > 0) and carry trailing prose, so they
+  // fail both this pattern and the level check below.
+  const PRINCIPLE_RE = /^\*\*(\d+)\.\s[^*]*\*\*$/;
+
+  md.core.ruler.push("principle_anchors", (state) => {
+    const tokens = state.tokens;
+    for (let i = 0; i < tokens.length - 1; i++) {
+      const open = tokens[i];
+      if (open.type !== "paragraph_open" || open.level !== 0) continue;
+
+      const inline = tokens[i + 1];
+      if (!inline || inline.type !== "inline") continue;
+
+      const match = PRINCIPLE_RE.exec(inline.content);
+      if (!match) continue;
+
+      const slug = `principle-${match[1]}`;
+      open.attrSet("id", slug);
+
+      // Wrap the paragraph's existing children in a self-link so the rule
+      // behaves like a heading anchor (headerLink permalink style).
+      const linkOpen = new state.Token("link_open", "a", 1);
+      linkOpen.attrSet("class", "header-anchor principle-link");
+      linkOpen.attrSet("href", `#${slug}`);
+      const linkClose = new state.Token("link_close", "a", -1);
+
+      inline.children.unshift(linkOpen);
+      inline.children.push(linkClose);
+    }
+  });
+}
+
 const md = markdownIt({ html: true, linkify: false, typographer: true });
 md.use(markdownItAnchor, {
   permalink: markdownItAnchor.permalink.headerLink(),
   level: [2, 3, 4, 5, 6],
   slugify,
 });
+md.use(principleAnchors);
 
 /** @param {import("@11ty/eleventy").UserConfig} eleventyConfig */
 export default function (eleventyConfig) {
