@@ -19,12 +19,13 @@ The visual identity is inspired by Wes Anderson's *The Grand Budapest Hotel* —
 | Warm Cream | `#FAF3EB` | Page background |
 | Dark Aubergine | `#4A2E4A` | Body text, borders |
 | Medium Aubergine | `#5C3A5C` | Headings |
-| Dusty Rose | `#D4909A` | Accents, list markers, blockquote borders |
+| Dusty Rose | `#D4909A` | Accents, list markers, blockquote borders, anchor pilcrow |
 | Lavender | `#B8B0D2` | Hero gradient, secondary backgrounds |
-| Sage Green | `#8BB5A2` | Links |
+| Sage Green | `#8BB5A2` | Code block strings and selectors |
+| Deep Sage | `#416D59` | Links, focus outline |
 | Pale Mauve | `#E8D0D9` | Dividers, table alternating rows |
 | Mendl's Pink | `#F6C4D2` | Hero gradient endpoint |
-| Regal Purple | `#75638B` | Subheadings, visited links |
+| Regal Purple | `#75638B` | Subheadings |
 
 ### Dark Palette
 
@@ -35,12 +36,14 @@ The site defaults to the visitor's operating system light/dark preference, and a
 | Warm Cream | `#2A1F2D` | Page background (deep aubergine-black) |
 | Dark Aubergine | `#E8D5E0` | Body text (warm pink-cream) |
 | Medium Aubergine | `#D4B8D4` | Headings (light mauve) |
-| Dusty Rose | `#D4909A` | Accents (unchanged) |
+| Dusty Rose | `#D4909A` | Accents, anchor pilcrow (unchanged) |
 | Lavender | `#4A3F5C` | Hero gradient, secondary backgrounds (deep muted purple) |
-| Sage Green | `#8BB5A2` | Links (unchanged) |
+| Sage Green | `#8BB5A2` | Links, code block strings and selectors, focus outline (same hex as light) |
 | Pale Mauve | `#3D2F3D` | Dividers, table alternating rows (dark mauve) |
 | Mendl's Pink | `#5C3A4A` | Hero gradient endpoint (deep muted rose) |
-| Regal Purple | `#B8A8D0` | Subheadings, visited links (lightened purple) |
+| Regal Purple | `#B8A8D0` | Subheadings (lightened purple) |
+
+Deep sage has no dark counterpart, and neither links nor the focus outline need one here. It exists because sage green is a dark-background color — lovely against aubergine-black, far too pale against warm cream to read comfortably at body size. Dark mode hands links back to sage green, which is the background it was chosen for.
 
 Code blocks maintain a dark background in both modes, using separate tokens that are tuned independently from the page palette:
 

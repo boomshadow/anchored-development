@@ -1,8 +1,8 @@
 ---
 title: "Website"
-description: "Behavioral expectations for anchored-dev.org. Covers page structure (homepage rendering SPEC-000, getting-started guide, colophon), content sourcing without file duplication, visual design system (Grand Budapest Hotel aesthetic with warm pastels and aubergine tones, a header light/dark theme slider that defaults to the operating system preference and remembers the visitor's choice), typography (Playfair Display, Libre Baskerville, Jost), rendering rules (heading anchors, syntax highlighting, dark mode and theme toggle, responsive layout), and deployment via Cloudflare Pages."
+description: "Behavioral expectations for anchored-dev.org. Covers page structure (homepage rendering SPEC-000, getting-started guide, colophon), content sourcing without file duplication, visual design system (Grand Budapest Hotel aesthetic with warm pastels and aubergine tones, a header light/dark theme slider that defaults to the operating system preference and remembers the visitor's choice), typography (Playfair Display, Libre Baskerville, Jost), link treatment (green in both palettes, deepened for light mode to meet WCAG AA contrast, with no visited-link distinction), rendering rules (heading anchors, rule-level anchors making each numbered principle individually deep-linkable, a pilcrow hover affordance on anchors, syntax highlighting, dark mode and theme toggle, responsive layout), and deployment via Cloudflare Pages."
 status: accepted
-tags: [website, anchored-dev-org, design-system, visual-identity, deployment, typography, color-palette, dark-mode, theme-toggle]
+tags: [website, anchored-dev-org, design-system, visual-identity, deployment, typography, color-palette, dark-mode, theme-toggle, deep-linking, anchors, pilcrow, accessibility, contrast, wcag, links]
 ---
 
 # Website
@@ -33,9 +33,11 @@ The site's visual identity is inspired by the aesthetic of Wes Anderson's *The G
 
 ### Color Palette
 
-The palette is warm, literary, and muted — aubergine ink, dusty rose accents, sage green links, lavender and pink gradients, all set against a warm cream background that feels like paper rather than a screen. The tones are drawn from the site's anchor icon, which uses lavender, dusty rose, and sage green with dark aubergine outlines in an ornamental art-deco frame.
+The palette is warm, literary, and muted — aubergine ink, dusty rose accents, green links, lavender and pink gradients, all set against a warm cream background that feels like paper rather than a screen. The tones are drawn from the site's anchor icon, which uses lavender, dusty rose, and sage green with dark aubergine outlines in an ornamental art-deco frame.
 
-The site has both a light and a dark palette. By default the active palette follows the visitor's operating system light/dark preference; a header theme slider lets the visitor override it, and the choice is remembered (see Theme Toggle). In dark mode, the palette shifts to deep warm aubergine-black backgrounds with lightened text and accents — the same hotel with the lights dimmed, not a cold inversion. Colors that already have sufficient contrast against both backgrounds (dusty rose, sage green) remain unchanged.
+The site has both a light and a dark palette. By default the active palette follows the visitor's operating system light/dark preference; a header theme slider lets the visitor override it, and the choice is remembered (see Theme Toggle). In dark mode, the palette shifts to deep warm aubergine-black backgrounds with lightened text and accents — the same hotel with the lights dimmed, not a cold inversion. A few colors hold the same value in both palettes rather than being overridden — dusty rose and sage green among them.
+
+Holding a value across both palettes is not the same as being legible in both. Text-carrying colors are expected to meet the WCAG AA contrast ratio for body-size text against whichever background is active. Sage green clears that bar comfortably against the dark background and falls well short of it against warm cream, so light mode draws links in a deepened sage of the same hue instead — the link reads as one color across themes while staying legible in each. Colors that carry meaning without carrying text — the outline that shows a keyboard visitor which control they are on, and anything else that communicates interface state — are expected to meet the lower WCAG ratio that applies to non-text elements. Purely decorative colors, such as the dusty rose used for ornament and list markers, carry no such obligation: nothing is lost if they go unnoticed.
 
 Exact color values for both light and dark palettes are documented in the site's colophon, which serves as the authoritative reference for the technical palette.
 
@@ -77,7 +79,9 @@ The hero content sits inside an ornamental double-border frame.
 
 **Blockquotes** have a left border in dusty rose, italic text, and indentation.
 
-**Links** are sage green with underline on hover. Visited links use regal purple.
+**Links** are green in both palettes — deep sage in light mode, sage green in dark — and underline on hover. They are not distinguished by whether they have been visited (see [ADR-005](../decisions/ADR-005-link-color-and-state.md)). Anchor self-links are the exception to the color, not the underline: a heading or rule that links to itself keeps the color of the text around it, so a run of principles does not read as a run of links. It still underlines on hover, which is the affordance that does not depend on seeing the pilcrow.
+
+**The anchor pilcrow** is dusty rose, which holds the same value in both palettes. It sits just outside the text it anchors, scaled to that text's size and aligned with it, so it reads as a companion mark at every heading level rather than a fixed-size interface glyph, and it is drawn in the body face at every level rather than taking on the surrounding heading's letterform. It is ornament: faint by design, and never the only thing marking an anchor. See Rendering Rules for when it appears.
 
 **Horizontal rules** are thin centered lines, styled as subtle dividers rather than bold separators.
 
@@ -97,6 +101,10 @@ See [ADR-003](../decisions/ADR-003-dark-mode-approach.md) for the rationale, rej
 ## Rendering Rules
 
 **Heading anchor links.** All h2 through h6 headings have anchor links for deep-linking. Visitors can link directly to any section of the specification.
+
+**Rule-level anchor links.** Each numbered principle in SPEC-000 is individually deep-linkable, so a visitor can cite a single rule rather than the section containing it. The anchors are keyed to the principle's number, not its wording, so they survive a rule being reworded. These anchors are added by the site's rendering pipeline; the specification source is not modified to create them, which means they exist on the website only and not in a repository host's rendering of the raw markdown. See [ADR-004](../decisions/ADR-004-rule-level-anchors.md) for the rationale and rejected alternatives.
+
+**Anchor hover affordance.** Anchor links — both heading and rule-level — underline on hover and reveal a pilcrow marker beside the text, so a visitor can discover that the text is a deep link. The underline is the affordance that carries the meaning and the pilcrow accompanies it, not the reverse. Keyboard focus reveals the marker on any device; hovering reveals it wherever the device actually supports hovering, so a tap cannot leave it stuck on. It never displaces the text it accompanies, and on touch devices the anchor text itself remains tappable, so no capability is lost. The build check verifies that both triggers exist; that the keyboard one is not itself conditioned on pointer support is confirmed by manual verification and drift detection rather than by the build.
 
 **Syntax highlighting.** Code blocks are syntax-highlighted at build time. No client-side JavaScript is required for code highlighting.
 
@@ -122,6 +130,8 @@ The site is deployed to Cloudflare Pages via native GitLab integration. Cloudfla
 
 - [ADR-002](../decisions/ADR-002-website-technology-stack.md) — technology stack decision (Eleventy, Cloudflare Pages)
 - [ADR-003](../decisions/ADR-003-dark-mode-approach.md) — dark mode approach (persisted light/dark slider over CSS custom property overrides, defaulting to the OS preference and remembering the choice)
+- [ADR-004](../decisions/ADR-004-rule-level-anchors.md) — rule-level anchors added by the rendering pipeline rather than by promoting the principles to headings in SPEC-000
+- [ADR-005](../decisions/ADR-005-link-color-and-state.md) — per-palette link color for contrast, and the removal of visited-link styling
 - [SPEC-000](SPEC-000-anchored-development.md) — the specification rendered as the homepage content
 - [ADR-001](../decisions/ADR-001-licensing.md) — site content is licensed under CC BY-SA 4.0
-- Build smoke tests in `test/` verify the built site: all three pages, the stylesheet, and the theme script are produced (Page Structure, Deployment), and heading anchor links, build-time syntax highlighting, disabled linkify, dark-mode support, the header theme slider, no-flash theming before first paint, and the persistence contract (the theme choice is saved to web storage) are present (Rendering Rules, Theme Toggle)
+- Build smoke tests in `test/` verify the built site: all three pages, the stylesheet, and the theme script are produced (Page Structure, Deployment), and heading anchor links, rule-level principle anchors (the full set, compared as a contiguous sequence against the numbered rules counted in SPEC-000 itself, together with their self-links, so neither a skipped rule nor a lost link can pass unnoticed), the anchor pilcrow hover affordance and its pointer-device gate, the link and focus treatment (both color tokens resolving per theme, and the absence of visited styling), build-time syntax highlighting, disabled linkify, dark-mode support, the header theme slider, no-flash theming before first paint, and the persistence contract (the theme choice is saved to web storage) are present (Rendering Rules, Theme Toggle)

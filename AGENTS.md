@@ -33,5 +33,7 @@ CI enforces step 2: a merge request that changes SPEC-000 fails unless `CHANGELO
 Built with Eleventy v3 (Build Awesome), deployed via Cloudflare Pages.
 See [SPEC-001](docs/specs/SPEC-001-website.md) for behavioral expectations,
 [ADR-002](docs/decisions/ADR-002-website-technology-stack.md) for technology decisions,
-and [ADR-003](docs/decisions/ADR-003-dark-mode-approach.md) for the dark mode approach.
+[ADR-003](docs/decisions/ADR-003-dark-mode-approach.md) for the dark mode approach,
+[ADR-004](docs/decisions/ADR-004-rule-level-anchors.md) for rule-level anchors,
+and [ADR-005](docs/decisions/ADR-005-link-color-and-state.md) for link color and state.
 Build config: `eleventy.config.js` at repo root. Source: `site/src/`. Output: `site/_site/`.
