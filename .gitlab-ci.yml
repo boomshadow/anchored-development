@@ -40,7 +40,7 @@ build:smoke-test:
 
 anchor-watch:
   stage: drift-detection
-  image: registry.gitlab.com/boomshadow/anchor-watch-image:2.0.0@sha256:9e01a798c64901adbae424fc0798e6cbe6386fc20e7922b8e338fa6491deb9b7
+  image: registry.gitlab.com/boomshadow/anchor-watch-image:2.0.1@sha256:baafe435f4b77d22d882cc57266292536f39b94af3fe3aa4a629b21a5a6b5269
   script:
     - node .claude/agents/scripts/ci-drift-detector.mjs
   allow_failure: false
