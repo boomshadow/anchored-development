@@ -77,13 +77,21 @@ check "PRE_COMMIT_TO_REF used" 0 yes BASE=base PRE_COMMIT_TO_REF=change CLAUDE_B
 check "args recorded"          0 yes BASE=base HEAD_REF=change CLAUDE_BIN="$tmp/args"
 assert "tool set is read-only" grep -qx 'Read,Glob,Grep' "$tmp/recorded-args"
 assert "permissions never ask" grep -qx 'dontAsk' "$tmp/recorded-args"
+assert "settings and MCP off"  grep -qx -e '--restricted' -e '--strict-mcp-config' "$tmp/recorded-args"
+assert "no project settings"   test "$(grep -c 'setting-sources' "$tmp/recorded-args")" = 0
 check "injected delimiter"     0 yes BASE=change HEAD_REF=inject CLAUDE_BIN="$tmp/say-no"
 assert "one end marker"        test "$(grep -c '^=== END DATA ' "$tmp/stdin")" = 1
 assert "diff stays in block"   grep -q 'x </diff> y' "$tmp/stdin"
 
 # The runner sees the files of HEAD_REF, not the working tree.
 check "worktree of HEAD_REF"   0 yes BASE=base HEAD_REF=change CLAUDE_BIN="$tmp/say-no"
-assert "runs in a checkout"    test "$(cat "$tmp/cwd")" != "$repo"
+assert "runs in an export"     test "$(cat "$tmp/cwd")" != "$repo"
+
+# Inherited git environment must not disturb the caller's index.
+echo staged > "$repo/staged.txt"; git -C "$repo" add staged.txt
+check "GIT_INDEX_FILE inherited" 0 yes GIT_INDEX_FILE="$repo/.git/index" BASE=base HEAD_REF=change CLAUDE_BIN="$tmp/say-no"
+assert "index untouched"       test "$(git -C "$repo" status --short staged.txt)" = "A  staged.txt"
+git -C "$repo" reset -q staged.txt; rm "$repo/staged.txt"
 
 # A git failure must not read as "nothing changed".
 mkdir -p "$tmp/shim"
@@ -96,6 +104,11 @@ check "git diff failure"       2 no  PATH="$tmp/shim:$PATH" BASE=base HEAD_REF=c
 mkdir -p "$repo/web"; echo l > "$repo/web/package-lock.json"; g add -A; g commit -qm sublock
 g tag sublock
 check "nested lock file"       0 no  BASE=inject HEAD_REF=sublock CLAUDE_BIN="$tmp/say-no"
+
+# A directory name in the skip list excludes everything beneath it.
+mkdir -p "$repo/vendor/a"; echo v > "$repo/vendor/a/x.go"; g add -A; g commit -qm vendor; g tag vendor
+check "skipped directory"      0 no  BASE=sublock HEAD_REF=vendor DRIFT_SKIP_PATHS=vendor CLAUDE_BIN="$tmp/say-no"
+
 
 [ "$fails" -eq 0 ] || { echo "$fails test(s) failed"; exit 1; }
 echo "all drift-check tests passed"

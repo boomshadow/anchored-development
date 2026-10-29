@@ -7,7 +7,8 @@
 # with a read-only tool set (see ADR-006, ADR-007). Meant for a pre-push hook.
 #
 # Environment:
-#   BASE                  baseline ref (default: origin/main). Must resolve, or exit 2.
+#   BASE                  baseline ref (default: the remote's default branch, else
+#                         origin/main). Must resolve, or exit 2.
 #   HEAD_REF              tip of the change (default: $PRE_COMMIT_TO_REF, else HEAD).
 #   CLAUDE_BIN            LLM runner (default: claude).
 #   DRIFT_AGENT_FILE      detector instructions (default: the drift-detector agent
@@ -16,7 +17,7 @@
 #   DRIFT_SKIP_PATHS      space-separated pathspecs that never carry behavior or
 #                         intent and are left out of the diff (default: common lock files).
 #
-# The agent reads the files of HEAD_REF from a temporary checkout, so the diff
+# The agent reads the files of HEAD_REF from a temporary export, so the diff
 # and the artifacts it is compared with always describe the same commit.
 #
 # Exit codes: 0 no drift, 1 drift found, 2 infrastructure error
@@ -24,7 +25,9 @@
 # Skip once with: SKIP=drift-check git push
 set -euo pipefail
 
-BASE="${BASE:-origin/main}"
+remote="${PRE_COMMIT_REMOTE_NAME:-origin}"
+default_base=$(git symbolic-ref --quiet --short "refs/remotes/$remote/HEAD" 2>/dev/null || echo "$remote/main")
+BASE="${BASE:-$default_base}"
 HEAD_REF="${HEAD_REF:-${PRE_COMMIT_TO_REF:-HEAD}}"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 MAX_BYTES="${DRIFT_MAX_DIFF_BYTES:-200000}"
@@ -47,8 +50,8 @@ merge_base=$(git merge-base "$base_sha" "$head_sha") \
 
 # Each entry matches at any depth, so lock files in subdirectories are skipped too.
 pathspec=(.)
-read -r -a skip <<<"$SKIP_PATHS"
-for p in "${skip[@]}"; do pathspec+=(":(exclude,glob)**/$p"); done
+# A name excludes a file or a directory of that name.
+for p in $SKIP_PATHS; do pathspec+=(":(exclude,glob)**/$p" ":(exclude,glob)**/$p/**"); done
 
 # No color, external diff drivers or textconv: the diff must not depend on the
 # developer's git configuration.
@@ -56,8 +59,8 @@ gitdiff() { git -c color.ui=never diff --no-color --no-ext-diff --no-textconv "$
 
 changed_out=$(gitdiff --name-only "$merge_base" "$head_sha" -- "${pathspec[@]}") \
   || die "git diff failed; refusing to treat an unreadable change as empty"
-mapfile -t changed <<<"$changed_out"
-[ -n "$changed_out" ] || changed=()
+changed=()
+while IFS= read -r line; do [ -z "$line" ] || changed+=("$line"); done <<<"$changed_out"
 if [ "${#changed[@]}" -eq 0 ]; then
   echo "drift-check: no relevant changes between $BASE and $HEAD_REF; nothing to check"
   exit 0
@@ -100,16 +103,21 @@ PROMPT
 
 echo "drift-check: ${#changed[@]} changed file(s), $BASE (${merge_base:0:12}) .. $HEAD_REF (${head_sha:0:12})" >&2
 
-# Fixed read-only tool set that fails closed (ADR-006): only these tools exist,
-# and anything else is denied without asking.
+# Read-only and fails closed (ADR-006): only these built-in tools exist, anything
+# else is denied without asking, and --restricted with --strict-mcp-config ignores
+# settings, hooks and MCP servers, which the commit under review would otherwise
+# control. User settings are ignored too, so provider configuration (for example
+# Bedrock or Vertex) must come from the environment.
+# `git archive` touches no index and runs no hooks or smudge filters.
 tree=$(mktemp -d)
-trap 'git -C "$root" worktree remove --force "$tree" >/dev/null 2>&1; rm -rf "$tree"' EXIT
-git worktree add --detach --quiet "$tree" "$head_sha" || die "cannot check out $HEAD_REF"
+trap 'rm -rf "$tree"' EXIT
+git archive "$head_sha" | tar -x -C "$tree" || die "cannot export $HEAD_REF"
 out=$(cd "$tree" && printf '%s' "$prompt" | "$CLAUDE_BIN" -p \
   --system-prompt "$agent_prompt" \
   --tools "Read,Glob,Grep" \
   --permission-mode dontAsk \
-  --setting-sources project \
+  --restricted \
+  --strict-mcp-config \
   --no-session-persistence) \
   || die "'$CLAUDE_BIN -p' failed"
 

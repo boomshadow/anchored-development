@@ -65,7 +65,14 @@ expect "bad file name"                2 "$tool"
 fixture; spec SPEC-001-thing.md accepted '(a, b)'
 expect "tags not a list"              2 "$tool"
 fixture; rm "$repo/docs/decisions/ADR-001-choice.md"; spec SPEC-001-thing.md accepted
-expect "empty ADR dir is an error"    2 "$tool"
+expect "empty ADR dir, header-only"   0 "$tool"
+expect "header-only index is fresh"   0 "$tool" --check
+rewritten=$(cat "$repo/docs/specs/INDEX.md"); sed -i '1s/.*/<!-- other -->/' "$repo/docs/specs/INDEX.md"
+"$tool" >/dev/null; head -1 "$repo/docs/specs/INDEX.md" | grep -q other || { echo "FAIL write keeps foreign header"; fails=$((fails+1)); }
+for bad in "title: Choice # note" "title: yes" "title: 'it''s'" 'title: "a\tb"' "title: 'open"; do
+  fixture; printf -- '---\n%s\ndescription: "d"\nstatus: accepted\ntags: [x]\n---\nb\n' "$bad" > "$repo/docs/specs/SPEC-001-t.md"
+  expect "rejects: $bad"              2 "$tool"
+done
 fixture; spec SPEC-001-thing.md accepted; adr ADR-001-choice.md "## Context"
 expect "ADR missing sections"         2 "$tool"
 fixture; spec SPEC-001-thing.md accepted; adr ADR-001-choice.md "# Title\n## Context\n## Decision\n## Consequences"

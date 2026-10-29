@@ -40,13 +40,38 @@ def repo_root():
     return pathlib.Path(out.stdout.strip())
 
 
-def unquote(value):
+YAML_SPECIAL = re.compile(
+    r"^(true|false|yes|no|on|off|null|~|[-+]?[0-9][0-9_]*(\.[0-9]+)?([eE][-+]?[0-9]+)?)$", re.IGNORECASE
+)
+
+
+def unquote(value, where):
+    """Decode a scalar, rejecting any YAML construct this tool does not read exactly."""
     value = value.strip()
-    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+    if value[:1] in "\"'":
+        if len(value) < 2 or value[-1] != value[0]:
+            raise FrontmatterError(f"{where}: unbalanced quotes")
         inner = value[1:-1]
-        if value[0] == '"':
-            inner = inner.replace('\\"', '"').replace("\\\\", "\\")
-        return inner
+        if value[0] == "'":
+            if "'" in inner:
+                raise FrontmatterError(f"{where}: escaped single quote is unsupported; use double quotes")
+            return inner
+        out, i = [], 0
+        while i < len(inner):
+            c = inner[i]
+            if c == '"':
+                raise FrontmatterError(f"{where}: unescaped double quote")
+            if c == "\\":
+                if inner[i + 1:i + 2] not in ('"', "\\"):
+                    raise FrontmatterError(f"{where}: only \\\" and \\\\ escapes are supported")
+                i += 1
+            out.append(inner[i])
+            i += 1
+        return "".join(out)
+    if " #" in value:
+        raise FrontmatterError(f"{where}: trailing comment is unsupported; quote the value")
+    if YAML_SPECIAL.match(value):
+        raise FrontmatterError(f"{where}: YAML would read this as a non-string; quote it")
     return value
 
 
@@ -68,9 +93,9 @@ def parse_frontmatter(path):
         if key == "tags":
             if not (raw.startswith("[") and raw.endswith("]")):
                 raise FrontmatterError(f"{path}:{lineno}: tags must be an inline [list]")
-            meta[key] = [unquote(t) for t in raw[1:-1].split(",") if t.strip()]
+            meta[key] = [unquote(t, f"{path}:{lineno}") for t in raw[1:-1].split(",") if t.strip()]
         else:
-            meta[key] = unquote(raw)
+            meta[key] = unquote(raw, f"{path}:{lineno}")
     missing = [k for k in REQUIRED if not meta.get(k)]
     if missing:
         raise FrontmatterError(f"{path}: missing frontmatter field(s): {', '.join(missing)}")
@@ -94,8 +119,6 @@ def render(root, directory, prefix, heading, sections):
     rows = []
     seen = {}
     files = sorted((root / directory).glob(f"{prefix}-*.md"))
-    if not files:
-        raise FrontmatterError(f"no {prefix}-NNN-slug.md files in {directory}")
     for path in files:
         m = pattern.match(path.name)
         if not m:
@@ -153,7 +176,7 @@ def main(argv):
     stale = []
     for index, content in outputs:
         current = index.read_text(encoding="utf-8") if index.exists() else None
-        if current == content or (check and current is not None and body_of(current) == body_of(content)):
+        if current == content or (current is not None and body_of(current) == body_of(content)):
             continue
         rel = index.relative_to(root)
         if check:
