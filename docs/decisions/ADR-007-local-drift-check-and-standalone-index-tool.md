@@ -1,6 +1,6 @@
 ---
 title: "Local Pre-Push Drift Check and a Standalone Index Generator"
-description: "Consumer repositories get a pre-push drift check that reuses the drift-detector agent instructions with the read-only tool set of ADR-006, and a stdlib-only index generator with a freshness check. The check refuses oversized diffs and unparseable output instead of truncating or guessing. Rejected: a second hand-written detector prompt, a CI-only check, allow-listing tools without restricting the tool set, truncating large diffs, and reusing the per-skill generators that need PyYAML."
+description: "Consumer repositories get a pre-push drift check that reuses the drift-detector agent instructions with a narrower read-only tool set than ADR-006 (no shell), isolated from settings, hooks and MCP servers, and a stdlib-only index generator with a freshness check. The check refuses oversized diffs and unparseable output instead of truncating or guessing. Rejected: a second hand-written detector prompt, a CI-only check, allow-listing tools without restricting the tool set, truncating large diffs, and reusing the per-skill generators that need PyYAML."
 status: accepted
 tags: [drift-detection, pre-push, tooling, pre-commit, least-privilege, index-generation, fail-explicitly]
 ---
@@ -26,6 +26,10 @@ SPEC-000 requires drift detection on every change, and allows a git hook as the 
 **A CI-only check.** Feedback arrives after the push, and platforms other than the one hosting CI get nothing.
 
 **Allow-listing tools without restricting the tool set.** Rejected for the reasons in ADR-006: it leaves file writes and network access available to an agent that reads untrusted text.
+
+**Loading the project's settings (`--setting-sources project`).** The commit under review controls them, so hooks, environment overrides and MCP servers it carries would run on the developer's machine. Isolation from settings was chosen instead, at the cost that provider configuration must come from the environment.
+
+**Parsing prose for the verdict.** Chosen for now because the local tool shares the agent's existing output format. It fails closed on unrecognised output; moving to structured output shared with CI is the natural follow-up.
 
 **Shipping it in the example repo.** ADR-001 places distributable tooling there. Consumer tooling is kept here because it must stay in step with SPEC-000 and the detector agent that live here.
 

@@ -20,11 +20,11 @@ Repositories that adopt [SPEC-000](SPEC-000-anchored-development.md) can use thi
 
 ### Drift check
 
-- It compares the range from the merge base of `BASE` and `HEAD_REF` to `HEAD_REF`. `BASE` defaults to the remote's default branch. `HEAD_REF` defaults to the ref pre-commit reports as pushed, else `HEAD`.
+- It compares the range from the merge base of `DRIFT_BASE` and `DRIFT_HEAD_REF` to `DRIFT_HEAD_REF`. `DRIFT_BASE` defaults to the remote's default branch when it is known, else `main` on that remote. `DRIFT_HEAD_REF` defaults to the ref pre-commit reports as pushed, else `HEAD`.
 - It runs drift-detector agent instructions through the Claude CLI: by default the copy shipped with the tooling, or a file the caller names. The CLI is given only the Read, Glob and Grep tools, anything else is denied without asking (ADR-006), and settings, hooks and MCP servers are ignored, because the commit under review controls them.
-- The agent reads the files of the change's tip from a temporary export, so the diff and the artifacts it is compared with describe the same commit. The export does not touch the caller's index or run repository hooks.
-- The diff is passed between markers carrying a per-run random token and labelled as data. It does not depend on the developer's git configuration.
-- Lock files, at any depth, are left out of the diff by default, because they carry no behavior or intent. Entries name a file or a directory, and the list can be emptied.
+- The agent reads the files of the change's tip from a temporary export, so the diff and the artifacts it is compared with describe the same commit. The export ignores repository attributes, does not touch the caller's index, and runs no repository hooks.
+- Repository text is treated as data, and the diff cannot end its own delimiting. The diff does not depend on the developer's git configuration or on the repository's own attributes, so a commit cannot hide its change.
+- Lock files, at any depth, are left out of the diff by default, because they carry no behavior or intent. Entries name a file, a directory or a glob, matched at any depth, and the list can be emptied.
 - A diff over the size limit is refused, never truncated.
 
 ### Exit codes
@@ -48,7 +48,7 @@ The GitHub Actions composite runs the non-LLM index freshness check only. The dr
 ## Known gaps
 
 - The verdict comes from a model and is not deterministic. The stub-runner tests prove the plumbing, not the judgment.
-- Findings are recognised in the model's prose, while the CI detector uses structured output. The two verdict formats are maintained separately.
+- The verdict format differs from the CI detector's, and the two are maintained separately.
 - Submodule content is absent from the export, so the agent cannot read it.
 - Only the first pushed ref is checked when a push carries several.
 - There is no timeout around the model call.

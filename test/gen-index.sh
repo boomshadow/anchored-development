@@ -69,7 +69,7 @@ expect "empty ADR dir, header-only"   0 "$tool"
 expect "header-only index is fresh"   0 "$tool" --check
 rewritten=$(cat "$repo/docs/specs/INDEX.md"); sed -i '1s/.*/<!-- other -->/' "$repo/docs/specs/INDEX.md"
 "$tool" >/dev/null; head -1 "$repo/docs/specs/INDEX.md" | grep -q other || { echo "FAIL write keeps foreign header"; fails=$((fails+1)); }
-for bad in "title: Choice # note" "title: yes" "title: 'it''s'" 'title: "a\tb"' "title: 'open"; do
+for bad in "title: Foo: Bar" "title: 0x1F" "title: 1:30" "title: .inf" "title: [a]" "title: &a Foo" "title: !!str Foo" "title: @x" "title: %x" "title: Choice # note" "title: yes" "title: 'it''s'" 'title: "a\tb"' "title: 'open"; do
   fixture; printf -- '---\n%s\ndescription: "d"\nstatus: accepted\ntags: [x]\n---\nb\n' "$bad" > "$repo/docs/specs/SPEC-001-t.md"
   expect "rejects: $bad"              2 "$tool"
 done
@@ -82,6 +82,15 @@ fixture; spec SPEC-001-thing.md draft
 expect "draft status rejected"        2 "$tool"
 fixture; spec SPEC-001-thing.md accepted '[Mixed]'
 expect "uppercase tag rejected"       2 "$tool"
+fixture; printf -- '---\ntitle: "T"\ndescription: "wrapped over\n  several lines, as in\n  the SPEC-000 template"\nstatus: accepted\ntags: [x]\n---\nb\n' > "$repo/docs/specs/SPEC-001-t.md"
+expect "folded quoted description"     0 "$tool"
+grep -q 'wrapped over several lines, as in the SPEC-000 template' "$repo/docs/specs/INDEX.md" || { echo "FAIL fold"; fails=$((fails+1)); }
+fixture; printf -- '---\ntitle:\ndescription: "d"\nstatus: accepted\ntags: [x]\n---\nb\n' > "$repo/docs/specs/SPEC-001-t.md"
+msg=$(cd "$repo" && "$tool" 2>&1 || true); case "$msg" in *"missing frontmatter field"*) ;; *) echo "FAIL empty value message"; fails=$((fails+1)) ;; esac
+fixture; spec SPEC-001-thing.md accepted; printf -- '---\ntitle: "T"\ndescription: "d"\nstatus: accepted\ntags: [x]\n---' > "$repo/docs/specs/SPEC-002-eof.md"
+expect "closing --- at end of file"   0 "$tool"
+fixture; spec SPEC-001-thing.md accepted; mkdir "$repo/docs/specs/INDEX.md"
+expect "INDEX.md is a directory"      2 "$tool" --check
 fixture; printf 'no frontmatter\n' > "$repo/docs/specs/SPEC-001-thing.md"
 expect "missing frontmatter"          2 "$tool"
 

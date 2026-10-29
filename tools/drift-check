@@ -2,14 +2,14 @@
 # Local drift detector for repos that follow Anchored Development (SPEC-000).
 # Detects, never fixes.
 #
-# Compares the change range BASE...HEAD_REF against the repository's specs and
+# Compares the change range DRIFT_BASE...DRIFT_HEAD_REF against the repository's specs and
 # ADRs by running the drift-detector agent instructions through `claude -p`
 # with a read-only tool set (see ADR-006, ADR-007). Meant for a pre-push hook.
 #
 # Environment:
-#   BASE                  baseline ref (default: the remote's default branch, else
+#   DRIFT_BASE                  baseline ref (default: the remote's default branch, else
 #                         origin/main). Must resolve, or exit 2.
-#   HEAD_REF              tip of the change (default: $PRE_COMMIT_TO_REF, else HEAD).
+#   DRIFT_HEAD_REF              tip of the change (default: $PRE_COMMIT_TO_REF, else HEAD).
 #   CLAUDE_BIN            LLM runner (default: claude).
 #   DRIFT_AGENT_FILE      detector instructions (default: the drift-detector agent
 #                         shipped alongside this script).
@@ -17,7 +17,7 @@
 #   DRIFT_SKIP_PATHS      space-separated pathspecs that never carry behavior or
 #                         intent and are left out of the diff (default: common lock files).
 #
-# The agent reads the files of HEAD_REF from a temporary export, so the diff
+# The agent reads the files of DRIFT_HEAD_REF from a temporary export, so the diff
 # and the artifacts it is compared with always describe the same commit.
 #
 # Exit codes: 0 no drift, 1 drift found, 2 infrastructure error
@@ -27,8 +27,8 @@ set -euo pipefail
 
 remote="${PRE_COMMIT_REMOTE_NAME:-origin}"
 default_base=$(git symbolic-ref --quiet --short "refs/remotes/$remote/HEAD" 2>/dev/null || echo "$remote/main")
-BASE="${BASE:-$default_base}"
-HEAD_REF="${HEAD_REF:-${PRE_COMMIT_TO_REF:-HEAD}}"
+DRIFT_BASE="${DRIFT_BASE:-$default_base}"
+DRIFT_HEAD_REF="${DRIFT_HEAD_REF:-${PRE_COMMIT_TO_REF:-HEAD}}"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 MAX_BYTES="${DRIFT_MAX_DIFF_BYTES:-200000}"
 SKIP_PATHS="${DRIFT_SKIP_PATHS-package-lock.json yarn.lock pnpm-lock.yaml poetry.lock uv.lock Cargo.lock go.sum flake.lock}"
@@ -41,28 +41,34 @@ die() { echo "drift-check: error: $*" >&2; exit 2; }
 root=$(git rev-parse --show-toplevel 2>/dev/null) || die "not inside a git repository"
 cd "$root"
 
-base_sha=$(git rev-parse --verify --quiet "${BASE}^{commit}") \
-  || die "baseline ref '$BASE' cannot be resolved (run 'git fetch origin' or set BASE=<ref>)"
-head_sha=$(git rev-parse --verify --quiet "${HEAD_REF}^{commit}") \
-  || die "change ref '$HEAD_REF' cannot be resolved"
+base_sha=$(git rev-parse --verify --quiet "${DRIFT_BASE}^{commit}") \
+  || die "baseline ref '$DRIFT_BASE' cannot be resolved (run 'git fetch origin' or set DRIFT_BASE=<ref>)"
+head_sha=$(git rev-parse --verify --quiet "${DRIFT_HEAD_REF}^{commit}") \
+  || die "change ref '$DRIFT_HEAD_REF' cannot be resolved"
 merge_base=$(git merge-base "$base_sha" "$head_sha") \
-  || die "no merge base between '$BASE' and '$HEAD_REF'"
+  || die "no merge base between '$DRIFT_BASE' and '$DRIFT_HEAD_REF'"
 
 # Each entry matches at any depth, so lock files in subdirectories are skipped too.
 pathspec=(.)
-# A name excludes a file or a directory of that name.
+# A name excludes a file or a directory of that name. Names are literal, so the
+# list is not glob-expanded against the working directory.
+set -f
 for p in $SKIP_PATHS; do pathspec+=(":(exclude,glob)**/$p" ":(exclude,glob)**/$p/**"); done
+set +f
 
 # No color, external diff drivers or textconv: the diff must not depend on the
 # developer's git configuration.
-gitdiff() { git -c color.ui=never diff --no-color --no-ext-diff --no-textconv "$@"; }
+# Repository attributes (-diff, binary, export-subst) are ignored for the same
+# reason: the commit under review must not be able to hide its own change.
+empty_tree=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+gitdiff() { git --attr-source="$empty_tree" -c color.ui=never diff --no-color --no-ext-diff --no-textconv "$@"; }
 
 changed_out=$(gitdiff --name-only "$merge_base" "$head_sha" -- "${pathspec[@]}") \
   || die "git diff failed; refusing to treat an unreadable change as empty"
 changed=()
 while IFS= read -r line; do [ -z "$line" ] || changed+=("$line"); done <<<"$changed_out"
 if [ "${#changed[@]}" -eq 0 ]; then
-  echo "drift-check: no relevant changes between $BASE and $HEAD_REF; nothing to check"
+  echo "drift-check: no relevant changes between $DRIFT_BASE and $DRIFT_HEAD_REF; nothing to check"
   exit 0
 fi
 
@@ -73,7 +79,7 @@ diff_bytes=$(printf '%s' "$diff" | wc -c)
   || die "diff is $diff_bytes bytes, over DRIFT_MAX_DIFF_BYTES=$MAX_BYTES; refusing to check a truncated diff"
 
 for f in docs/specs/SPEC-000-anchored-development.md docs/specs/INDEX.md docs/decisions/INDEX.md; do
-  git cat-file -e "$head_sha:$f" 2>/dev/null || die "required file missing at $HEAD_REF: $f"
+  git cat-file -e "$head_sha:$f" 2>/dev/null || die "required file missing at $DRIFT_HEAD_REF: $f"
 done
 [ -f "$AGENT_FILE" ] || die "detector instructions not found: $AGENT_FILE"
 command -v "$CLAUDE_BIN" >/dev/null 2>&1 || die "LLM runner '$CLAUDE_BIN' not found on PATH"
@@ -101,17 +107,22 @@ $diff
 PROMPT
 )
 
-echo "drift-check: ${#changed[@]} changed file(s), $BASE (${merge_base:0:12}) .. $HEAD_REF (${head_sha:0:12})" >&2
+echo "drift-check: ${#changed[@]} changed file(s), $DRIFT_BASE (${merge_base:0:12}) .. $DRIFT_HEAD_REF (${head_sha:0:12})" >&2
 
 # Read-only and fails closed (ADR-006): only these built-in tools exist, anything
 # else is denied without asking, and --restricted with --strict-mcp-config ignores
 # settings, hooks and MCP servers, which the commit under review would otherwise
 # control. User settings are ignored too, so provider configuration (for example
 # Bedrock or Vertex) must come from the environment.
-# `git archive` touches no index and runs no hooks or smudge filters.
+# The export uses a private index and ignores repository attributes, so it runs
+# no hooks or filters, leaves the caller's index alone, and cannot omit files
+# through export-ignore or rewrite them through export-subst.
 tree=$(mktemp -d)
-trap 'rm -rf "$tree"' EXIT
-git archive "$head_sha" | tar -x -C "$tree" || die "cannot export $HEAD_REF"
+idx=$(mktemp -u)
+trap 'rm -rf "$tree" "$idx"' EXIT
+GIT_INDEX_FILE="$idx" git read-tree "$head_sha" \
+  && GIT_INDEX_FILE="$idx" git --attr-source="$empty_tree" checkout-index -a --prefix="$tree/" \
+  || die "cannot export $DRIFT_HEAD_REF (needs git 2.40 or newer)"
 out=$(cd "$tree" && printf '%s' "$prompt" | "$CLAUDE_BIN" -p \
   --system-prompt "$agent_prompt" \
   --tools "Read,Glob,Grep" \
@@ -125,10 +136,10 @@ printf '%s\n' "$out"
 
 # Findings win over a pass line, so contradictory output never passes.
 if printf '%s\n' "$out" | grep -qE '^DRIFT:'; then
-  echo "drift-check: drift found ($BASE...$HEAD_REF); update the artifacts above or fix the code" >&2
+  echo "drift-check: drift found ($DRIFT_BASE...$DRIFT_HEAD_REF); update the artifacts above or fix the code" >&2
   exit 1
 elif printf '%s\n' "$out" | grep -qE '^No drift detected\.[[:space:]]*$'; then
-  echo "drift-check: no drift found ($BASE...$HEAD_REF)"
+  echo "drift-check: no drift found ($DRIFT_BASE...$DRIFT_HEAD_REF)"
   exit 0
 fi
 die "runner output has neither a 'DRIFT:' finding nor 'No drift detected.'"
