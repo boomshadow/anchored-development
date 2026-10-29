@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# Tests tools/gen-index in throwaway repos: fresh/stale detection, rewrite,
+# validation errors, and usage.
+set -euo pipefail
+
+here=$(cd "$(dirname "$0")/.." && pwd)
+tool="$here/tools/gen-index"
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+fails=0
+expect() { # expect <name> <want exit> <cmd...>
+  local name=$1 want=$2; shift 2
+  set +e
+  (cd "$repo" && "$@") >"$tmp/out" 2>&1
+  local got=$?
+  set -e
+  if [ "$got" = "$want" ]; then echo "ok   $name (exit $got)"
+  else echo "FAIL $name: exit $got (want $want)"; sed 's/^/     /' "$tmp/out"; fails=$((fails + 1)); fi
+}
+fixture() {
+  repo=$(mktemp -d -p "$tmp"); git -C "$repo" init -q -b main
+  mkdir -p "$repo/docs/specs" "$repo/docs/decisions"
+}
+spec() { # spec <file> <status> [tags-line]
+  cat > "$repo/docs/specs/$1" <<DOC
+---
+title: "A \"quoted\" title"
+description: "Does | something"
+status: $2
+tags: ${3:-[a, 'b']}
+---
+body
+DOC
+}
+
+fixture
+spec SPEC-001-thing.md accepted
+expect "empty ADR dir, stale indexes" 1 "$tool" --check
+expect "rewrite"                      0 "$tool"
+expect "fresh after rewrite"          0 "$tool" --check
+grep -q '^# Specifications$' "$repo/docs/specs/INDEX.md" || { echo "FAIL heading"; fails=$((fails+1)); }
+grep -q '^# Architecture Decision Records$' "$repo/docs/decisions/INDEX.md" || { echo "FAIL ADR heading"; fails=$((fails+1)); }
+grep -q 'A "quoted" title' "$repo/docs/specs/INDEX.md" || { echo "FAIL unquote"; fails=$((fails+1)); }
+grep -q 'Does \\| something' "$repo/docs/specs/INDEX.md" || { echo "FAIL pipe escape"; fails=$((fails+1)); }
+grep -q '| a, b |' "$repo/docs/specs/INDEX.md" || { echo "FAIL tags"; fails=$((fails+1)); }
+echo hand-edit >> "$repo/docs/specs/INDEX.md"
+expect "hand-edited index is stale"   1 "$tool" --check
+expect "help"                         0 "$tool" --help
+expect "bad usage"                    2 "$tool" --bogus
+expect "outside a repo"               2 bash -c "cd / && '$tool' --check"
+
+fixture; spec SPEC-001-thing.md published
+expect "invalid status"               2 "$tool"
+fixture; spec SPEC-001-thing.md accepted; spec SPEC-001-other.md accepted
+expect "reused number"                2 "$tool"
+fixture; spec SPEC-1-thing.md accepted
+expect "bad file name"                2 "$tool"
+fixture; spec SPEC-001-thing.md accepted '(a, b)'
+expect "tags not a list"              2 "$tool"
+fixture; printf 'no frontmatter\n' > "$repo/docs/specs/SPEC-001-thing.md"
+expect "missing frontmatter"          2 "$tool"
+
+[ "$fails" -eq 0 ] || { echo "$fails test(s) failed"; exit 1; }
+echo "all gen-index tests passed"
