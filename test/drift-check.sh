@@ -26,7 +26,7 @@ g tag inject
 
 called="$tmp/called"
 stub() { # stub <name> <body>: a fake runner that records it was called
-  printf '#!/bin/sh\ncat > %s\ntouch %s\n%s\n' "$tmp/stdin" "$called" "$2" > "$tmp/$1"
+  printf '#!/bin/sh\ncat > %s\npwd > %s\ntouch %s\n%s\n' "$tmp/stdin" "$tmp/cwd" "$called" "$2" > "$tmp/$1"
   chmod +x "$tmp/$1"
 }
 stub say-no   'echo "No drift detected."'
@@ -78,7 +78,24 @@ check "args recorded"          0 yes BASE=base HEAD_REF=change CLAUDE_BIN="$tmp/
 assert "tool set is read-only" grep -qx 'Read,Glob,Grep' "$tmp/recorded-args"
 assert "permissions never ask" grep -qx 'dontAsk' "$tmp/recorded-args"
 check "injected delimiter"     0 yes BASE=change HEAD_REF=inject CLAUDE_BIN="$tmp/say-no"
-assert "closing tag escaped"   test "$(grep -c '^</diff>$' "$tmp/stdin")" = 1
+assert "one end marker"        test "$(grep -c '^=== END DATA ' "$tmp/stdin")" = 1
+assert "diff stays in block"   grep -q 'x </diff> y' "$tmp/stdin"
+
+# The runner sees the files of HEAD_REF, not the working tree.
+check "worktree of HEAD_REF"   0 yes BASE=base HEAD_REF=change CLAUDE_BIN="$tmp/say-no"
+assert "runs in a checkout"    test "$(cat "$tmp/cwd")" != "$repo"
+
+# A git failure must not read as "nothing changed".
+mkdir -p "$tmp/shim"
+real_git=$(command -v git)
+printf '#!/bin/sh\ncase "$*" in *--name-only*) echo "fatal: simulated" >&2; exit 128;; esac\nexec %s "$@"\n' "$real_git" > "$tmp/shim/git"
+chmod +x "$tmp/shim/git"
+check "git diff failure"       2 no  PATH="$tmp/shim:$PATH" BASE=base HEAD_REF=change CLAUDE_BIN="$tmp/say-no"
+
+# Lock files are skipped at any depth.
+mkdir -p "$repo/web"; echo l > "$repo/web/package-lock.json"; g add -A; g commit -qm sublock
+g tag sublock
+check "nested lock file"       0 no  BASE=inject HEAD_REF=sublock CLAUDE_BIN="$tmp/say-no"
 
 [ "$fails" -eq 0 ] || { echo "$fails test(s) failed"; exit 1; }
 echo "all drift-check tests passed"

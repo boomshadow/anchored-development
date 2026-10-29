@@ -6,7 +6,11 @@ Usage (run from anywhere inside the repository):
   gen-index --check   exit 1 if either INDEX.md is stale, write nothing
   gen-index --help    show this text
 
-Exit codes: 0 ok / fresh, 1 stale (--check only), 2 invalid frontmatter or usage.
+The check ignores the AUTO-GENERATED header comment, so it agrees with indexes
+written by the per-skill generators.
+
+Exit codes: 0 ok / fresh, 1 stale (--check only), 2 invalid frontmatter, usage,
+or any other failure.
 Stdlib only, so it runs anywhere python3 does with nothing to install. Frontmatter
 must stay simple: one `key: value` per line, tags as an inline `[a, b]` list.
 """
@@ -47,7 +51,7 @@ def unquote(value):
 
 
 def parse_frontmatter(path):
-    text = path.read_text(encoding="utf-8")
+    text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
     if not text.startswith("---\n"):
         raise FrontmatterError(f"{path}: missing frontmatter opening '---'")
     end = text.find("\n---\n", 4)
@@ -77,18 +81,22 @@ def parse_frontmatter(path):
     bad = [t for t in meta["tags"] if t != t.lower()]
     if bad:
         raise FrontmatterError(f"{path}: tags must be lowercase: {', '.join(bad)}")
+    meta["_body"] = text[end + 5:]
     return meta
 
 
 def cell(value):
-    return str(value).replace("|", "\\|").replace("\n", " ").strip()
+    return " ".join(str(value).split()).replace("|", "\\|")
 
 
 def render(root, directory, prefix, heading, sections):
     pattern = re.compile(rf"^{prefix}-(\d{{3}})-[\w-]+\.md$")
     rows = []
     seen = {}
-    for path in sorted((root / directory).glob(f"{prefix}-*.md")):
+    files = sorted((root / directory).glob(f"{prefix}-*.md"))
+    if not files:
+        raise FrontmatterError(f"no {prefix}-NNN-slug.md files in {directory}")
+    for path in files:
         m = pattern.match(path.name)
         if not m:
             raise FrontmatterError(f"{path}: name does not match {prefix}-NNN-slug.md")
@@ -97,7 +105,7 @@ def render(root, directory, prefix, heading, sections):
             raise FrontmatterError(f"{path}: number {number} reused (also {seen[number]})")
         seen[number] = path.name
         meta = parse_frontmatter(path)
-        body = path.read_text(encoding="utf-8")
+        body = meta["_body"]
         for section in sections:
             if not re.search(rf"^#{{1,6}}\s+{section}\b", body, re.MULTILINE):
                 raise FrontmatterError(f"{path}: missing required section: {section}")
@@ -120,9 +128,12 @@ def render(root, directory, prefix, heading, sections):
         "|--------|-------|-------------|--------|------|",
         *rows,
     ]
-    if not rows:
-        lines.append("| _none yet_ | | | | |")
     return "\n".join(lines) + "\n"
+
+
+def body_of(index_text):
+    """An index without its AUTO-GENERATED header comment."""
+    return re.sub(r"\A<!-- AUTO-GENERATED[^\n]*-->\n", "", index_text)
 
 
 def main(argv):
@@ -136,13 +147,13 @@ def main(argv):
     try:
         root = repo_root()
         outputs = [(root / d / "INDEX.md", render(root, d, p, h, s)) for d, p, h, s in SETS]
-    except FrontmatterError as exc:
+    except (FrontmatterError, OSError, UnicodeDecodeError) as exc:
         print(f"gen-index: {exc}", file=sys.stderr)
         return 2
     stale = []
     for index, content in outputs:
         current = index.read_text(encoding="utf-8") if index.exists() else None
-        if current == content:
+        if current == content or (check and current is not None and body_of(current) == body_of(content)):
             continue
         rel = index.relative_to(root)
         if check:
