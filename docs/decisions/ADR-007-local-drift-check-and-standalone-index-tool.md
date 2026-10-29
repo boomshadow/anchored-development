@@ -31,7 +31,7 @@ SPEC-000 requires drift detection on every change, and allows a git hook as the 
 
 **Parsing prose for the verdict.** Chosen for now because the local tool shares the agent's existing output format. It fails closed on unrecognised output; moving to structured output shared with CI is the natural follow-up.
 
-**Shipping it in the example repo.** ADR-001 places distributable tooling there. Consumer tooling is kept here because it must stay in step with SPEC-000 and the detector agent that live here.
+**Shipping it only in the example repo.** ADR-001 describes the example repo as the source teams copy from. Copying scripts forks them, and a hook that runs on every push should be updated by a version bump instead. The tooling lives here, beside the agent instructions and SPEC-000 it must stay in step with, and is consumed by pinned reference; the example repo can still copy it.
 
 **Running the CI detector locally through the Agent SDK.** It needs Node and an SDK install in every consumer; the Claude CLI is already present on the machines that run the check.
 
