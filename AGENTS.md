@@ -16,7 +16,6 @@ This project follows [Anchored Development](docs/specs/SPEC-000-anchored-develop
 - **Skills**: `.claude/skills/` — spec and adr
 - **Agents**: `.claude/agents/` — drift-detector
 - **Drift detection**: `.claude/agents/drift-detector.md` — runs in CI on every merge request; invoke locally to verify artifact consistency before pushing
-- **Consumer tooling**: `tools/` — `drift-check` (local pre-push detector) and `gen-index` (stdlib index generator), exposed through `.pre-commit-hooks.yaml`; see [SPEC-002](docs/specs/SPEC-002-consumer-tooling.md)
 
 ## Versioning & releases
 
