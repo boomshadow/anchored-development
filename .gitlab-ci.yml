@@ -52,9 +52,9 @@ anchor-watch:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 # Enforces the versioning ritual (AGENTS.md § Versioning & releases): a change to
-# the framework spec is a release, so it must carry a CHANGELOG.md entry. Runs only
-# when SPEC-000 changed in an MR, and fails unless CHANGELOG.md changed in the same MR.
-changelog-guard:
+# the framework spec is a release, so it must bump the version. Runs only when
+# SPEC-000 changed in an MR, and fails unless its version field changed in the same MR.
+version-guard:
   stage: guard
   image: alpine:3.24.2@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
   variables:
@@ -63,11 +63,11 @@ changelog-guard:
     - apk add --no-cache git
   script:
     - |
-      if git diff --name-only "$CI_MERGE_REQUEST_DIFF_BASE_SHA" HEAD | grep -qx "CHANGELOG.md"; then
-        echo "OK: CHANGELOG.md was updated alongside SPEC-000."
+      if git diff "$CI_MERGE_REQUEST_DIFF_BASE_SHA" HEAD -- docs/specs/SPEC-000-anchored-development.md | grep -q '^+version:'; then
+        echo "OK: the SPEC-000 version was bumped."
       else
-        echo "FAIL: SPEC-000 changed but CHANGELOG.md was not updated in this MR."
-        echo "A framework change is a release — add a CHANGELOG.md entry (and bump the SPEC-000 version, then tag on merge)."
+        echo "FAIL: SPEC-000 changed but its version field did not."
+        echo "A framework change is a release — bump the SPEC-000 version, then tag and publish a GitHub release on merge."
         exit 1
       fi
   rules:
