@@ -367,7 +367,7 @@ ADRs MUST contain at minimum:
 
 **Context** — What problem exists. What constraints apply. Be specific — do not assume the reader has the same context as the decision maker.
 
-**Decision** — What was decided and why. Lead with the choice, then the reasoning. Rejected alternatives MUST be named with explanations for why they were rejected. This is the section that prevents re-litigation. The reason and the rejected alternatives are the ones the decision's owner gave; with none, the ADR has none, and an agent asks the owner rather than supplying its own.
+**Decision** — What was decided and why. Lead with the choice, then the reasoning. Rejected alternatives MUST be named with explanations for why they were rejected. The reasoning and the rejected alternatives are the decision maker's own; an agent asks the decision maker rather than supplying its own. If the decision maker rejected no alternative, the ADR names none. This is the section that prevents re-litigation.
 
 **Consequences** — What follows from this decision, both positive and negative. Note any follow-on decisions this creates.
 
