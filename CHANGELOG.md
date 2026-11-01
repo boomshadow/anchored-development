@@ -5,6 +5,12 @@ All notable changes to the Anchored Development framework ([SPEC-000](docs/specs
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-10-24
+
+### Changed
+
+- **An ADR may have no rejected alternative.** The description names the major rejected alternative only when the decision has one, and the Decision section records only the reasons and alternatives the decision's owner gave. An agent writing an ADR asks the owner instead of inventing alternatives nobody considered. Every ADR valid under 2.0.0 stays valid.
+
 ## [2.0.0] - 2026-07-11
 
 ### Added
