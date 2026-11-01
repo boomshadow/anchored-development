@@ -24,6 +24,15 @@ The [anchored-development-example](https://github.com/boomshadow/anchored-develo
 
 Clone it and start building. Fork it and adapt. Or just read through it to see what a project can look like on day one.
 
+## Tooling
+
+The [anchor-watch-image](https://github.com/boomshadow/anchor-watch-image) repository holds the tooling you reference rather than copy, pinned to a release:
+
+- **The drift detection image.** The CI drift detection job runs in it, with the Claude Agent SDK and Claude Code already installed.
+- **Pre-commit hooks.** A pre-push drift check runs your drift-detector agent locally, so drift shows up before you push, on any platform. An index check fails when a spec or ADR index is stale.
+
+None of it is required. Any mechanism that detects drift satisfies the framework.
+
 ## What Your Repo Will Look Like
 
 Here is the minimal structure for a project practicing Anchored Development:

@@ -15,7 +15,7 @@ The site has three pages:
 
 **Homepage (`/`)** — Renders SPEC-000 as the primary content. The page opens with a hero section containing the site icon, the framework title, and a tagline. Below the hero, the full specification is rendered as styled prose. This is the page a visitor sees when they navigate to anchored-dev.org.
 
-**Getting Started (`/getting-started/`)** — Adoption mechanics and structural guidance. Covers how to set up the framework in new projects and existing codebases, links to the example repository, and shows the minimal directory structure. This page exists for readers who are ready to adopt and want practical next steps.
+**Getting Started (`/getting-started/`)** — Adoption mechanics and structural guidance. Covers how to set up the framework in new projects and existing codebases, links to the example repository and the tooling repository, and shows the minimal directory structure. This page exists for readers who are ready to adopt and want practical next steps.
 
 **Colophon (`/colophon/`)** — A self-documenting artifact listing the site's design choices, color palette values, and tooling. Exists for transparency and fun.
 

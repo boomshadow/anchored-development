@@ -17,6 +17,8 @@ This is the sole authoritative source. The https://anchored-dev.org[website] ren
 
 The spec itself talks about adoption. See https://anchored-dev.org/#adopting-anchored-development[Adopting Anchored Development] on the website for a styled walkthrough. For an example minimal starting point, see the https://github.com/boomshadow/anchored-development-example[example repository].
 
+For tooling, see https://github.com/boomshadow/anchor-watch-image[anchor-watch-image]: the image the drift detection CI job runs in, plus pre-commit hooks for a local pre-push drift check and an index freshness check, pinned by release tag rather than copied.
+
 == Project Artifacts
 
 This project follows its own framework. The specs, ADRs, and tooling here are *NOT* intended as examples — they are the real files that govern _this_ repository. If you are looking for a starting point for your own project, see <<How to Implement>>.
