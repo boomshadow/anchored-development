@@ -15,7 +15,7 @@ The website already deep-links every h2 through h6 heading (SPEC-001, Rendering 
 
 Two constraints shape the fix:
 
-1. **SPEC-000 is a versioned standard.** It carries a `version` field, and any change to it is a release requiring a version bump and a matching changelog entry, enforced in CI. This is a deliberately high bar, and it applies to the file regardless of how small the edit is.
+1. **SPEC-000 is a versioned standard.** It carries a `version` field, and any change to it is a release requiring a version bump, enforced in CI, and a published release. This is a deliberately high bar, and it applies to the file regardless of how small the edit is.
 2. **The specification is rendered in two contexts.** The repository file is the single source of truth, rendered both by the website and by the repository host's markdown viewer (SPEC-001, Content Sourcing). Anything that changes one context has to be evaluated for the other.
 
 ## Decision
@@ -36,7 +36,7 @@ The obvious approach, and the one a capable engineer meeting this problem is mos
 
 It was rejected on two counts.
 
-First, it moves anchor maintenance inside the versioned standard. Every subsequent adjustment to how the rules are anchored — a slug scheme, a numbering change, a formatting fix — becomes a release of Anchored Development itself, with a version bump and a changelog entry, because it edits SPEC-000. The cost of a presentational tweak would be permanently out of proportion to its substance.
+First, it moves anchor maintenance inside the versioned standard. Every subsequent adjustment to how the rules are anchored — a slug scheme, a numbering change, a formatting fix — becomes a release of Anchored Development itself, with a version bump and published release notes, because it edits SPEC-000. The cost of a presentational tweak would be permanently out of proportion to its substance.
 
 Second, it distorts the document. The principles are a flat enumerated list that reads as a unit; turning them into eleven headings inserts a layer into the heading hierarchy that exists only to carry anchors, and they would surface as eleven entries in any generated table of contents. That is a structural change to the specification made for a rendering convenience — precisely the inversion the framework warns against, where a navigation aid drives the artifact it is supposed to serve.
 

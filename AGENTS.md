@@ -22,10 +22,10 @@ This project follows [Anchored Development](docs/specs/SPEC-000-anchored-develop
 Anchored Development is a versioned standard ([SemVer](https://semver.org)). Any change to [SPEC-000](docs/specs/SPEC-000-anchored-development.md) is a release and MUST:
 
 1. **Bump** the `version` field in SPEC-000 frontmatter — major for a breaking change (e.g. renumbered principles, a new or removed MUST), minor for additive changes, patch for clarifications and fixes.
-2. **Record** a matching entry in [`CHANGELOG.md`](CHANGELOG.md) ([Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format) describing what changed.
-3. **Tag** the release (`git tag X.Y.Z` — no `v` prefix) once merged to `main`.
+2. **Tag** the release with an annotated tag and a one-line summary (`git tag -a X.Y.Z` — no `v` prefix) once merged to `main`.
+3. **Publish** a GitHub release for the tag, with release notes written as [SPEC-002](docs/specs/SPEC-002-releases.md) describes.
 
-CI enforces step 2: a merge request that changes SPEC-000 fails unless `CHANGELOG.md` is updated in the same MR. `CHANGELOG.md` is a navigation aid — downstream of SPEC-000, never a driver of it (see SPEC-000 § Navigation Aids).
+CI enforces step 1: a merge request that changes SPEC-000 fails unless it also bumps the version. Website changes and dependency updates are not releases. See [ADR-007](docs/decisions/ADR-007-releases-over-changelog.md) for why there is no changelog file.
 
 ## Website
 

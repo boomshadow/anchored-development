@@ -13,6 +13,10 @@ link:docs/specs/SPEC-000-anchored-development.md[docs/specs/SPEC-000-anchored-de
 
 This is the sole authoritative source. The https://anchored-dev.org[website] renders this file directly at build time — it is not a copy or a rewrite; it is the spec file with styling applied. If the website and the spec ever disagree, the spec is correct.
 
+== Releases
+
+Each version of the spec is published as a https://github.com/boomshadow/anchored-development/releases[GitHub release], with notes on what changed, why, and how it affects you if you upgrade.
+
 == How to Implement
 
 The spec itself talks about adoption. See https://anchored-dev.org/#adopting-anchored-development[Adopting Anchored Development] on the website for a styled walkthrough. For an example minimal starting point, see the https://github.com/boomshadow/anchored-development-example[example repository].
