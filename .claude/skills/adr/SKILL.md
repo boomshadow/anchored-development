@@ -48,7 +48,7 @@ After any ADR creation, edit, rename, or deletion.
 ### How to Run
 
 ```bash
-docker run --rm -v "$(pwd):/workspace" -w /workspace python:3.14.8-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72 sh -c "pip install -q pyyaml && python3 .claude/skills/adr/scripts/generate_index.py"
+docker run --rm -v "$(pwd):/workspace" -w /workspace python:3.15.1-alpine@sha256:54448f67d7c31c39e5cdd3ea2d6382395ce142806c284425f8e897d78a0465b3 sh -c "pip install -q pyyaml && python3 .claude/skills/adr/scripts/generate_index.py"
 ```
 
 ### What It Does
